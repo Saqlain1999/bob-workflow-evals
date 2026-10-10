@@ -53,8 +53,21 @@
     "participant_summary_file": null,
     "redactions": []
   },
+  "recovery": {
+    "checkpoint_origin": null,
+    "historical_helper_report": null,
+    "preparation_report": null,
+    "historical_state_fingerprint": null,
+    "prepared_state_fingerprint": null,
+    "candidate_state_fingerprint": null,
+    "observed_stale_evidence_recheck": "not_assessed",
+    "observed_checkpoint_usefulness": "not_assessed",
+    "observations": []
+  },
   "review": {
     "public_tests": "not_run",
+    "protected_inputs": "not_assessed",
+    "state_freshness": "not_assessed",
     "manual_acceptance": "not_assessed",
     "checklist_observations": [],
     "workflow_adherence": "not_assessed",

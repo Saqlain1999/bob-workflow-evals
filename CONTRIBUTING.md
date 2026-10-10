@@ -1,12 +1,12 @@
 # Contributing
 
-This repository starts with one small, public coding task. Contributions should
+This repository contains two small, public coding tasks. Contributions should
 improve repeatability or add well-defined tasks, not imply benchmark coverage
 that has not been measured.
 
 ## Improve the helper or documentation
 
-Use Python 3.8+ and the standard library. Preserve the existing commands and
+Use Python 3.10+ and the standard library. Preserve the existing commands and
 report semantics unless a change is explicitly documented. Add a meaningful
 test for changed behaviour, then run from the repository root:
 
@@ -15,7 +15,15 @@ python -m unittest discover -s tests -v
 ```
 
 Keep helper tests separate from fixture tests, which deliberately contain a
-baseline failure. Do not repair the original fixture as incidental cleanup.
+baseline failure or acquire known failures during preparation. Do not repair
+the original fixtures as incidental cleanup. Tiny Ledger is the default task;
+Parcel Resume uses the fixed `--task parcel-resume` selector.
+
+For changes to Parcel Resume, verify that preparation executes its real
+historical check, both expected current failures reproduce, protected policy
+and note bytes survive, and new/changed runtime files affect the state check.
+Keep constructed handoffs, helper checks and live participant observations
+distinct. This helper is not an extensible task platform or process sandbox.
 
 Explain the problem, the proposed change, and the observed checks. Avoid
 unnecessary package dependencies, model SDKs, credentials, and network calls.

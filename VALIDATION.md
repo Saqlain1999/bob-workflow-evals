@@ -1,4 +1,42 @@
-# Preparation validation
+# Local software validation
+
+## Parcel Resume addition — 10 October 2026 (UTC)
+
+Observed on Linux (`Linux-6.18.44-x86_64-with-glibc2.39`), Python 3.12.14.
+These are local software checks of the edited checkout, not a Bob participant
+result or hosted CI qualification of the new change.
+
+| Check | Observed result |
+| --- | --- |
+| `python3 -B -m unittest discover -s tests -v` | 27 helper tests passed; exit 0; no skips |
+| Parcel preparation | Actual historical suite: ten tests, no failures/errors/skips; constructed checkpoint written afterwards |
+| Parcel prepared baseline | Ten tests, the two named expected failures; helper status `expected_baseline_failure`, exit 0 |
+| Independent disposable-copy repair smoke | Ten candidate tests passed; protected policy/note bytes matched; before/after state stable; helper exit 0 |
+| Original Parcel fixture integrity during smoke | All original file hashes unchanged |
+
+The independent smoke made pricing read the current threshold and made CSV
+export delegate its delivery calculation to the quote API. It was a manual
+software control, separate from the helper-test repair that updates both entry
+points. Neither repair was made to the original fixture or presented as Bob's
+work.
+
+The helper suite retains all nine Tiny Ledger checks and adds 18 Parcel checks.
+The new negative controls cover treating the historical pass as current,
+repairing only one entry point, policy reversion, overwritten/deleted teammate
+notes, weakened candidate tests, newly added runtime files, source/configuration
+changes during the worker, redirected paths, malformed/skipped worker results,
+timeout, preparation failure cleanup, result placement and fixed task selection.
+Worker mutation cases produced passing tests but were rejected as unstable
+current-state evidence. Policy/note changes also remained non-passes even when
+the functional tests passed.
+
+No Bob client or model was run. Token usage, cost, observed checkpoint use and
+manual participant acceptance are unknown. The helper made zero model calls.
+Native Windows/macOS execution and live Bob version compatibility remain
+unverified. Python 3.10+ is the documented minimum; this new change was locally
+executed on 3.12.14 only.
+
+## Previous Tiny Ledger preparation record
 
 Recorded 10 October 2026 (Europe/Dublin). This is a local preparation record, not a participant benchmark result.
 
@@ -11,10 +49,13 @@ Recorded 10 October 2026 (Europe/Dublin). This is a local preparation record, no
 
 The helper suite exercises fresh preparation, preservation of existing files, the expected baseline, a failing candidate, a focused temporary repair, changed candidate tests, timeout reporting, and rejection of invalid timeout limits. A temporary repaired fixture inside a software test is not a live agent evaluation.
 
-## Hosted publication checks
+## Hosted publication checks for an earlier revision
 
 [GitHub Actions run 38008089567](https://github.com/Saqlain1999/bob-workflow-evals/actions/runs/38008089567) completed successfully for published commit `7291d345aa9507cf5d4e07a1557959202ea922c6` on 10 October 2026 (UTC). Both helper-test jobs passed on `ubuntu-latest`, using Python 3.10 and 3.12. The recorded test step was **Run helper tests in temporary workspaces**.
 
-These hosted software checks are separate from the local preparation and from participant benchmarks. Native Windows/macOS execution, Python 3.8 runtime compatibility, live Bob behavior, and large-repository evaluations are not established by this record.
+These hosted software checks predate Parcel Resume and do not qualify the new
+change. They are separate from local preparation and participant benchmarks.
+Native Windows/macOS execution, live Bob behavior, and large-repository
+evaluations are not established by this record.
 
 Use the [evaluation protocol](docs/protocol.md) to collect an actual participant run. Keep helper test results, participant behavior, and manual acceptance separate.

@@ -2,14 +2,15 @@
 
 A small, reproducible evaluation starter for IBM Bob coding workflows.
 
-The first task asks an agent to repair a deliberately faulty Python ledger.
-The repository includes the original fixture, a public regression suite, a
+Two tasks offer a first trial: repair a deliberately faulty Python ledger, or
+resume a parcel-pricing change from a constructed checkpoint after the policy
+and a teammate's notes have changed. Each has a fixture, public tests, a
 participant prompt, a manual acceptance checklist, and an offline helper that
-runs the trusted tests against a disposable candidate workspace.
+runs trusted tests against a disposable candidate workspace.
 
 **Status: evaluation starter. No live Bob evaluation or large-repository
-benchmark has been performed for this repository.** The included task is a small
-correctness exercise. Passing it does not establish reliable performance on
+benchmark has been performed for this repository.** These are small correctness
+and recovery exercises. Passing them does not establish reliable performance on
 large projects, prove that a workflow caused an improvement, or guarantee future
 results. This is an independent community project, not an IBM product.
 
@@ -19,20 +20,23 @@ results. This is an independent community project, not an IBM product.
 | --- | --- |
 | `fixtures/tiny-ledger/` | Deliberately faulty original and its nine public tests |
 | `tasks/tiny-ledger-atomicity/` | Task definition, agent prompt, and acceptance checklist |
+| `fixtures/parcel-resume/` | Multi-file pricing fixture and ten public tests |
+| `tasks/parcel-resume/` | Constructed interruption, current-state and preservation exercise |
 | `scripts/evaluate.py` | Prepare a fresh workspace and collect local test evidence |
-| `tests/test_evaluate.py` | Checks for the evaluation helper itself |
+| `tests/` | Checks for the evaluation helper itself, separate from fixture tests |
 | `docs/protocol.md` | How to run and report a manual evaluation |
 | `results/result-template.json` | Structured record for an actual participant run |
 
-The fixture uses integer cents, in-memory state, and Python's standard library.
-No packages, services, API keys, or network access are needed for its checks.
+The fixtures use integer cents and Python's standard library.
+No packages, services, API keys, or network access are needed for their checks.
 The helper makes no model calls. Running Bob is a separate, manual step using
 the installation and account you already have.
 
 ## Quick start
 
-Use Python 3.8 or later. The examples use `python`; use `python3` if that is the
+Use Python 3.10 or later. The examples use `python`; use `python3` if that is the
 executable name on your system. Run these commands from the repository root.
+Tiny Ledger remains the default task, so its existing commands are unchanged.
 
 ### 1. Check the helper
 
@@ -105,6 +109,34 @@ and execution; the helper does not silently count them as trusted checks.
 [manual checklist](tasks/tiny-ledger-atomicity/ACCEPTANCE.md), inspect the diff,
 and record the result using the [run template](results/result-template.json).
 
+## Try the checkpoint and current-state exercise
+
+[Parcel Resume](tasks/parcel-resume/README.md) adds a small multi-file recovery
+trial. Preparation really executes a historical ten-test passing check, writes
+an explicitly constructed checkpoint, then changes the policy and appends an
+unrelated teammate note. The prepared state has two expected failures. The
+participant must inspect current files, finish both entry points, and preserve
+the two teammate-owned files byte for byte.
+
+```sh
+python3 scripts/evaluate.py prepare --task parcel-resume --output runs/parcel-001
+python3 scripts/evaluate.py baseline --task parcel-resume --workspace runs/parcel-001 --result runs/parcel-001-baseline.json
+```
+
+Open that workspace in a fresh Bob conversation and use the
+[Parcel prompt](tasks/parcel-resume/AGENT_PROMPT.md). Afterwards:
+
+```sh
+python3 scripts/evaluate.py candidate --task parcel-resume --workspace runs/parcel-001 --result runs/parcel-001-candidate.json
+```
+
+Keep Parcel reports beside the workspace, as shown. Its helper success requires
+ten passing public tests, unchanged protected inputs, and stable recorded file
+state during verification. New runtime files enter the state fingerprints.
+[Human review](tasks/parcel-resume/ACCEPTANCE.md) still decides whether the
+participant used the checkpoint well or actually noticed stale evidence. No
+live Bob observation is inferred from a software test or a passing candidate.
+
 ## What the helper reports
 
 `--result` writes a JSON report and refuses to overwrite an existing report.
@@ -115,14 +147,17 @@ is **test-execution time**, not the agent's task duration.
 
 | Exit code | Meaning |
 | --- | --- |
-| `0` | Requested check succeeded: known faulty baseline confirmed, or public candidate tests passed |
+| `0` | Requested check succeeded: known faulty baseline confirmed, or candidate checks passed (including Parcel preservation and current-state checks) |
 | `1` | Tests ran, but the requested baseline or candidate condition was not satisfied |
-| `2` | Invalid arguments, file/output error, timeout, or helper execution problem |
+| `2` | Invalid arguments, file/output error, timeout, changed inputs during verification, or helper execution problem |
 
 Each check has a 30-second timeout by default; override with a positive
 `--timeout` value when needed. The helper executes local candidate Python code
-as part of the test run. It is not a sandbox or a service for executing
-untrusted submissions.
+as part of the test run. It is a cooperative local fixture helper, not a sandbox
+or service for untrusted submissions. The timeout does not contain descendant
+processes, and captured worker output is not size-bounded. Before/after hashes
+describe the recorded scope, not continuous monitoring of every possible input;
+see the [protocol](docs/protocol.md).
 
 ## Reporting an evaluation
 
