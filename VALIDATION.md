@@ -36,6 +36,10 @@ Native Windows/macOS execution and live Bob version compatibility remain
 unverified. Python 3.10+ is the documented minimum; this new change was locally
 executed on 3.12.14 only.
 
+## Hosted Parcel Resume checks
+
+[GitHub Actions run 38027907242](https://github.com/Saqlain1999/bob-workflow-evals/actions/runs/38027907242) passed for commit `8cf1bf67133b63f83b9f0ce268542b6e9f524404` on 10 October 2026 (UTC). Both Ubuntu jobs passed with Python 3.10 and 3.12, executing **Run helper tests in temporary workspaces** against the new helper and its 27-test suite. These hosted software checks establish no live Bob behavior or native Windows/macOS qualification.
+
 ## Previous Tiny Ledger preparation record
 
 Recorded 10 October 2026 (Europe/Dublin). This is a local preparation record, not a participant benchmark result.

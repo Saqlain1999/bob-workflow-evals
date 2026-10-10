@@ -1,7 +1,9 @@
 # Task: resume parcel pricing after the policy changes
 
-**Task ID:** `parcel-resume-v1`  
-**Helper selector:** `--task parcel-resume`  
+**Task ID:** `parcel-resume-v1`
+
+**Helper selector:** `--task parcel-resume`
+
 **Prerequisite:** Python 3.10+; standard library only.
 
 This is a small, inspectable exercise in using a checkpoint, rechecking current
