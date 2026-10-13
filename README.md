@@ -145,19 +145,29 @@ include observed test counts, failures, errors, skip counts, output, execution
 time, environment details, and file fingerprints. Time measured by the helper
 is **test-execution time**, not the agent's task duration.
 
+The helper retains at most **256 KiB per diagnostic channel** for worker stdout,
+worker stderr, and unittest text. The structured worker report has a separate
+**512 KiB** read limit. Limits are measured on bytes before UTF-8 decoding. If a
+limit is exceeded, the check exits `2` with status `resource_limit_exceeded`, a
+channel name, the configured limit, the observed byte count when available, and
+a bounded excerpt. `tests` remains `null`; truncated evidence can never become
+`public_tests_passed`. Invalid UTF-8 in worker stdout/stderr is replaced in the
+diagnostic excerpt rather than crashing the helper.
+
 | Exit code | Meaning |
 | --- | --- |
 | `0` | Requested check succeeded: known faulty baseline confirmed, or candidate checks passed (including Parcel preservation and current-state checks) |
 | `1` | Tests ran, but the requested baseline or candidate condition was not satisfied |
-| `2` | Invalid arguments, file/output error, timeout, changed inputs during verification, or helper execution problem |
+| `2` | Invalid arguments, file/output error, timeout, diagnostic/report limit, changed inputs during verification, or helper execution problem |
 
 Each check has a 30-second timeout by default; override with a positive
 `--timeout` value when needed. The helper executes local candidate Python code
 as part of the test run. It is a cooperative local fixture helper, not a sandbox
-or service for untrusted submissions. The timeout does not contain descendant
-processes, and captured worker output is not size-bounded. Before/after hashes
-describe the recorded scope, not continuous monitoring of every possible input;
-see the [protocol](docs/protocol.md).
+or service for untrusted submissions. On a timeout or diagnostic-limit failure,
+the helper terminates and reaps its direct worker. It does not provide a general
+memory quota or contain descendant processes. Before/after hashes describe the
+recorded scope, not continuous monitoring of every possible input; see the
+[protocol](docs/protocol.md).
 
 ## Reporting an evaluation
 

@@ -214,37 +214,90 @@ class ParcelResumeTests(unittest.TestCase):
         self.assertEqual(marker.read_text(encoding="utf-8"), "unrelated work\n")
 
     def test_malformed_worker_result_is_not_a_pass(self):
-        original_run = subprocess.run
-
-        def invalid_result(command, **kwargs):
-            if "_run-tests" not in command:
-                return original_run(command, **kwargs)
+        def invalid_result(command, *args, **kwargs):
             Path(command[5]).write_text('{"tests_run": 10, "successful": true}', encoding="utf-8")
-            return subprocess.CompletedProcess(command, 0, "", "")
+            return {
+                "returncode": 0, "stdout": "", "stderr": "",
+                "bytes_seen": {"stdout": 0, "stderr": 0},
+                "limit_bytes_per_channel": HELPER.DIAGNOSTIC_LIMIT_BYTES,
+                "limit_exceeded_channels": [], "capture_incomplete_channels": [],
+                "timed_out": False,
+            }
 
         self.repair()
-        with mock.patch.object(HELPER.subprocess, "run", side_effect=invalid_result):
+        with mock.patch.object(HELPER, "_run_bounded_process", side_effect=invalid_result):
             report, code = HELPER.check(self.workspace, "candidate", 30.0, "parcel-resume")
         self.assertEqual(code, 2)
         self.assertEqual(report["status"], "runner_error")
         self.assertIn("Malformed", report["error"])
         self.assertIsNone(report["tests"])
 
-    def test_skipped_required_test_is_not_a_pass(self):
-        original_run = subprocess.run
+    def test_oversized_worker_report_is_an_explicit_non_pass(self):
+        def oversized_result(command, *args, **kwargs):
+            Path(command[5]).write_bytes(b"x" * (HELPER.WORKER_REPORT_LIMIT_BYTES + 1))
+            return {
+                "returncode": 0, "stdout": "", "stderr": "",
+                "bytes_seen": {"stdout": 0, "stderr": 0},
+                "limit_bytes_per_channel": HELPER.DIAGNOSTIC_LIMIT_BYTES,
+                "limit_exceeded_channels": [], "capture_incomplete_channels": [],
+                "timed_out": False,
+            }
 
-        def skipped_result(command, **kwargs):
-            if "_run-tests" not in command:
-                return original_run(command, **kwargs)
+        self.repair()
+        with mock.patch.object(HELPER, "_run_bounded_process", side_effect=oversized_result):
+            report, code = HELPER.check(self.workspace, "candidate", 30.0, "parcel-resume")
+        self.assertEqual(code, 2)
+        self.assertEqual(report["status"], "resource_limit_exceeded")
+        self.assertEqual(report["resource_limit"]["channel"], "worker_report")
+        self.assertEqual(report["resource_limit"]["limit_bytes"], HELPER.WORKER_REPORT_LIMIT_BYTES)
+        self.assertIsNone(report["tests"])
+
+    def test_bounded_unittest_output_cannot_become_a_pass(self):
+        def limited_result(command, *args, **kwargs):
+            Path(command[5]).write_text(json.dumps({
+                "tests_run": 10, "successful": True, "output": "bounded excerpt",
+                "failures": [], "errors": [], "skipped": [],
+                "expected_failures": [], "unexpected_successes": [],
+                "resource_limit": {
+                    "channel": "unittest_output",
+                    "limit_bytes": HELPER.DIAGNOSTIC_LIMIT_BYTES,
+                    "bytes_seen": HELPER.DIAGNOSTIC_LIMIT_BYTES + 1,
+                },
+            }), encoding="utf-8")
+            return {
+                "returncode": 0, "stdout": "", "stderr": "",
+                "bytes_seen": {"stdout": 0, "stderr": 0},
+                "limit_bytes_per_channel": HELPER.DIAGNOSTIC_LIMIT_BYTES,
+                "limit_exceeded_channels": [], "capture_incomplete_channels": [],
+                "timed_out": False,
+            }
+
+        self.repair()
+        with mock.patch.object(HELPER, "_run_bounded_process", side_effect=limited_result):
+            report, code = HELPER.check(self.workspace, "candidate", 30.0, "parcel-resume")
+        self.assertEqual(code, 2)
+        self.assertEqual(report["status"], "resource_limit_exceeded")
+        self.assertEqual(report["resource_limit"]["channel"], "unittest_output")
+        self.assertEqual(report["resource_limit"]["bounded_excerpt"], "bounded excerpt")
+        self.assertIsNone(report["tests"])
+
+    def test_skipped_required_test_is_not_a_pass(self):
+        def skipped_result(command, *args, **kwargs):
             Path(command[5]).write_text(json.dumps({
                 "tests_run": 10, "successful": True, "output": "one required test skipped",
                 "failures": [], "errors": [], "skipped": ["test_pricing.PricingTests.test_below_policy_threshold_is_charged"],
                 "expected_failures": [], "unexpected_successes": [],
             }), encoding="utf-8")
-            return subprocess.CompletedProcess(command, 0, "", "")
+            return {
+                "returncode": 0, "stdout": "", "stderr": "",
+                "bytes_seen": {"stdout": 0, "stderr": 0},
+                "limit_bytes_per_channel": HELPER.DIAGNOSTIC_LIMIT_BYTES,
+                "limit_exceeded_channels": [], "capture_incomplete_channels": [],
+                "timed_out": False,
+            }
 
         self.repair()
-        with mock.patch.object(HELPER.subprocess, "run", side_effect=skipped_result):
+        with mock.patch.object(HELPER, "_run_bounded_process", side_effect=skipped_result):
             report, code = HELPER.check(self.workspace, "candidate", 30.0, "parcel-resume")
         self.assertEqual(code, 1)
         self.assertEqual(report["status"], "public_tests_failed")

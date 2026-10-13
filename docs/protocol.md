@@ -70,10 +70,15 @@ they are not continuous monitoring and cannot establish the absence of a
 temporary edit that was restored. Rerun verification after later edits.
 
 The helper is for a cooperative local exercise. Candidate code and tests share
-a worker runtime, captured output is not size-bounded, and the timeout does not
-contain descendants. It is not a sandbox, a generic runner, or protection
-against candidates manipulating the evaluation process. Review code before
-running it; do not submit untrusted code to a service built around this helper.
+a worker runtime. Worker stdout, worker stderr, and unittest text each have a
+256 KiB retained-byte limit; the structured worker report has a 512 KiB read
+limit. Exhausting one produces `resource_limit_exceeded` with exit code `2`,
+not a partial test pass. The helper terminates and reaps its direct worker after
+a timeout or diagnostic-limit failure, but it does not impose a general memory
+quota or contain descendant processes. It is not a sandbox, a generic runner,
+or protection against candidates manipulating the evaluation process. Review
+code before running it; do not submit untrusted code to a service built around
+this helper.
 
 For Parcel, separately review whether the participant used the checkpoint,
 noticed or checked stale evidence, and preserved others' work. Code correctness
