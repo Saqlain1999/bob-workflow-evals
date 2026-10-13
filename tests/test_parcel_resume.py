@@ -58,7 +58,7 @@ class ParcelResumeTests(unittest.TestCase):
         self.assertEqual(history["tests"]["tests_run"], 10)
         self.assertEqual(history["tests"]["failures"], [])
         self.assertTrue(history["workspace_state"]["stable_during_check"])
-        self.assertIn(str(self.workspace), history["test_command"])
+        self.assertIn(str(self.workspace.resolve()), history["test_command"])
         self.assertIsNotNone(history["environment"]["python_version"])
         self.assertEqual(self.preparation["changed_since_checkpoint"], ["TEAM_NOTES.md", "policy.json"])
         self.assertFalse(self.preparation["historical_check_is_current"])
