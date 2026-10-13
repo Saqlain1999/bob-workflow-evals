@@ -1,5 +1,32 @@
 # Local software validation
 
+## Bounded worker diagnostics — 13 October 2026 (UTC)
+
+Observed on Linux (`Linux-6.18.44-x86_64-with-glibc2.39`), Python 3.12.14.
+These are local software checks of the maintenance branch, not a Bob participant
+run or a live-client compatibility result.
+
+| Check | Observed result |
+| --- | --- |
+| `git diff --check` | Passed |
+| `python3 -m py_compile scripts/evaluate.py tests/test_evaluate.py tests/test_parcel_resume.py` | Passed |
+| `python3 -B -m unittest discover -s tests -v` | 36 helper tests passed; exit 0; no skips or resource warnings |
+| 300,000-byte candidate stdout negative control | Status `resource_limit_exceeded`; exit 2; channel `worker_stdout`; `tests` remained `null` |
+| Tiny Ledger disposable preparation and baseline | Nine trusted tests; one named expected failure; helper status `expected_baseline_failure` |
+| Parcel Resume disposable preparation and baseline | Historical pass executed; current baseline had the two named failures; protected inputs matched |
+| Independent disposable Parcel repair smoke | Ten trusted tests passed; protected inputs matched; before/after state stable; helper status `public_tests_passed` |
+
+The new unit coverage checks stdout, stderr, simultaneous pipe draining,
+exact-limit and limit-plus-one behavior, invalid UTF-8, nonzero exit, timeout and
+direct-worker reaping, bounded multibyte unittest failure text, malformed worker
+data, and the structured-report read boundary. Diagnostic exhaustion is an
+explicit exit-2 non-pass; truncated evidence cannot become test acceptance.
+
+The helper still is not a sandbox, a general memory quota, or descendant-process
+containment. No Bob client, model, credential, network service, or paid API was
+used. Hosted results for the final exact commit belong in the pull request so a
+later documentation-only commit cannot inherit an earlier run.
+
 ## Parcel Resume addition — 10 October 2026 (UTC)
 
 Observed on Linux (`Linux-6.18.44-x86_64-with-glibc2.39`), Python 3.12.14.
