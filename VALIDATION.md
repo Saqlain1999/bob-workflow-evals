@@ -1,5 +1,29 @@
 # Local software validation
 
+## Technical Writing Fidelity — 20 October 2026 (UTC)
+
+Observed on Linux (`Linux-6.18.55-x86_64-with-glibc2.39`), Python 3.12.14.
+This feature branch is intentionally stacked on the bounded-diagnostics branch,
+so the counts below cover both changes. They are offline software checks, not a
+Bob participant result or evidence that Bob discovered or followed a skill.
+
+| Check | Observed result |
+| --- | --- |
+| `python3 -B -W error::ResourceWarning -m unittest discover -s tests -v` | 45 helper tests passed; exit 0; no skips or resource warnings |
+| Technical-writing prepared baseline | Eight trusted checks; exactly the two named structure failures; helper status `expected_baseline_failure` |
+| Independent known-good rewrite control | Eight checks passed; protected contract unchanged; only `RUNBOOK.md` changed; helper status `public_tests_passed` |
+| Fidelity negative controls | Weakened retry permission/condition, removed negation, reordered commands, changed contract, and unrelated added file were all rejected |
+| Python/JSON/static checks | Five edited Python files compiled; every repository JSON file parsed; `git diff --check` passed |
+| Local Markdown links | 24 relative links checked; no missing target |
+
+The fixture's deterministic contract covers selected exact tokens, commands,
+modal keywords, negation, retry conditions, execution order, protected input,
+and candidate file scope. The manual checklist still owns scanability,
+contradictions and unsupported additions. Passing the helper does not prove
+general semantic equivalence, technical correctness, ASD-STE100 compliance, or
+the quality or cause of a live participant's behavior. No model, Bob client,
+credential, network service, or paid API was used.
+
 ## Bounded worker diagnostics — 13 October 2026 (UTC)
 
 Observed on Linux (`Linux-6.18.44-x86_64-with-glibc2.39`), Python 3.12.14.

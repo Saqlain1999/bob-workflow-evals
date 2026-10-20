@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare two small fixtures and collect offline public-test/state evidence."""
+"""Prepare three small fixtures and collect offline public-test/state evidence."""
 
 import argparse
 import hashlib
@@ -41,6 +41,18 @@ TASKS = {
             "test_export.ExportTests.test_below_policy_threshold_is_charged",
             "test_pricing.PricingTests.test_below_policy_threshold_is_charged",
         ],
+    },
+    "technical-writing-fidelity": {
+        "id": "technical-writing-fidelity-v1",
+        "fixture": ROOT / "fixtures" / "technical-writing-fidelity",
+        "entry": "RUNBOOK.md",
+        "test_count": 8,
+        "failures": [
+            "test_runbook.RunbookFidelityTests.test_procedure_has_four_ordered_steps",
+            "test_runbook.RunbookFidelityTests.test_required_sections_are_present",
+        ],
+        "protected_files": ["contract.json"],
+        "allowed_candidate_changes": ["RUNBOOK.md"],
     },
 }
 HANDOFF_FILES = {
@@ -253,9 +265,12 @@ def _state_hash(files: Dict[str, str]) -> str:
 
 
 def _protected_files(task_name: str, historical: bool = False) -> Dict[str, bytes]:
-    if task_name != "parcel-resume":
-        return {}
     fixture = _task(task_name)["fixture"]
+    if task_name != "parcel-resume":
+        return {
+            name: (fixture / name).read_bytes()
+            for name in _task(task_name).get("protected_files", [])
+        }
     policy = (fixture / "policy.json").read_bytes()
     notes = (fixture / "TEAM_NOTES.md").read_bytes()
     if not historical:
@@ -297,7 +312,7 @@ def prepare(output: Path, task_name: str = "tiny-ledger", timeout: float = 30.0)
         "public_tests_sha256": _test_hash(fixture / "tests"),
         "model_calls_made_by_helper": 0,
     }
-    if task_name == "tiny-ledger":
+    if task_name != "parcel-resume":
         return report
     try:
         historical, exit_code = check(output, "historical", timeout, task_name)
@@ -420,6 +435,11 @@ def check(workspace: Path, phase: str, timeout: float, task_name: str = "tiny-le
             for name, content in protected.items()
         },
         "protected_inputs_match_prepared": None if not protected or phase == "historical" else False,
+        "candidate_scope": {
+            "allowed_changes": task.get("allowed_candidate_changes"),
+            "observed_changes": None,
+            "matches": None,
+        },
         "trusted_tests_stable_during_check": None,
         "test_duration_seconds": None,
         "tests": None,
@@ -528,6 +548,21 @@ def check(workspace: Path, phase: str, timeout: float, task_name: str = "tiny-le
         report["error"] = "Verification inputs changed; the test outcome is not evidence for a stable current state"
         return report, 2
 
+    candidate_scope_valid = True
+    allowed_candidate_changes = task.get("allowed_candidate_changes")
+    if phase == "candidate" and allowed_candidate_changes is not None:
+        original = _expected_state(task_name)
+        observed_changes = sorted(
+            name
+            for name in set(original) | set(before)
+            if original.get(name) != before.get(name)
+        )
+        candidate_scope_valid = set(observed_changes).issubset(allowed_candidate_changes)
+        report["candidate_scope"].update({
+            "observed_changes": observed_changes,
+            "matches": candidate_scope_valid,
+        })
+
     complete_suite = (
         tests["tests_run"] == task["test_count"]
         and not tests["errors"]
@@ -549,8 +584,22 @@ def check(workspace: Path, phase: str, timeout: float, task_name: str = "tiny-le
         )
         report["status"] = "expected_baseline_failure" if valid else "unexpected_baseline"
     else:
-        valid = complete_suite and not tests["failures"] and tests["successful"] and protected_valid
-        report["status"] = "public_tests_passed" if valid else ("protected_inputs_changed" if not protected_valid else "public_tests_failed")
+        valid = (
+            complete_suite
+            and not tests["failures"]
+            and tests["successful"]
+            and protected_valid
+            and candidate_scope_valid
+        )
+        report["status"] = (
+            "public_tests_passed"
+            if valid
+            else "protected_inputs_changed"
+            if not protected_valid
+            else "candidate_scope_changed"
+            if not candidate_scope_valid
+            else "public_tests_failed"
+        )
     return report, 0 if valid else 1
 
 
@@ -561,7 +610,7 @@ def _validate_output(path: Optional[Path], workspace: Optional[Path] = None) -> 
     if _inside(resolved, (ROOT / "fixtures").resolve()):
         raise ValueError("Result output must be outside the original fixture")
     if workspace is not None and _inside(resolved, workspace.resolve()):
-        raise ValueError("Parcel result output must be outside the candidate workspace so recording it does not change the verified state")
+        raise ValueError("Result output must be outside the candidate workspace so recording it does not change the verified state")
     if resolved.exists():
         raise ValueError("Result file already exists; choose a new filename")
     return resolved
@@ -594,7 +643,10 @@ def main(argv: Optional[List[str]] = None) -> int:
             result_path = None
             exit_code = 0
         else:
-            result_path = _validate_output(args.result, args.workspace if args.task == "parcel-resume" else None)
+            state_bound_tasks = {"parcel-resume", "technical-writing-fidelity"}
+            result_path = _validate_output(
+                args.result, args.workspace if args.task in state_bound_tasks else None
+            )
             report, exit_code = check(args.workspace, args.command, args.timeout, args.task)
         encoded = json.dumps(report, indent=2) + "\n"
         if result_path is not None:

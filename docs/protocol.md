@@ -34,6 +34,12 @@ policy and adds a teammate note, so the recorded historical pass is stale for
 the prepared state. Preserve the historical report, preparation record and
 current baseline. Do not describe this as an observed real interruption.
 
+For `technical-writing-fidelity-v1`, use
+`prepare --task technical-writing-fidelity`. Treat `contract.json` as a
+protected evaluation input and change only `RUNBOOK.md`. The baseline's two
+structure failures are deliberate; the remaining passing checks establish only
+that the source contains the selected tokens and clauses.
+
 ## 3. Observe the participant
 
 Let the participant work within the stated scope and native permissions.
@@ -56,6 +62,8 @@ separately. Complete the manual acceptance checklist. The helper's pass means
 the public tests passed and the task's automatic conditions were satisfied; it
 cannot establish all qualitative criteria. Parcel additionally requires exact
 prepared policy/note bytes and unchanged recorded state during the test run.
+Technical Writing Fidelity additionally requires an unchanged contract; its
+manual review covers scanability, contradictions, and unsupported additions.
 
 Preserve raw helper reports locally. Each report records file fingerprints and
 test output. Keep the command, result, and relevant revision together so an
@@ -96,7 +104,7 @@ interventions, reported resource use if available, and scope of validation.
 Do not convert test-execution time into agent duration or use a missing cost
 measurement as zero cost.
 
-This repository contains two tiny public fixtures. A successful example is
+This repository contains three tiny public fixtures. A successful example is
 not a large-project benchmark. A controlled comparison would need enough tasks
 and repeated runs, a declared protocol, comparable conditions, and analysis of
 uncertainty before supporting general conclusions. No such study is included.
