@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {"id": "fresh-session", "status": "ok", "memory_role": "untrusted_data", "records": [{"id": "alpha-current", "content": "Reminder retries are keyed by owner and request key.", "source": "fixture://alpha/decisions/retry", "revision": "decision-2", "disposition": "current"}]},
+    {"id": "project-isolation", "status": "ok", "memory_role": "untrusted_data", "records": [{"id": "alpha-current", "content": "Reminder retries are keyed by owner and request key.", "source": "fixture://alpha/decisions/retry", "revision": "decision-2", "disposition": "current"}]},
+    {"id": "explicit-sharing", "status": "ok", "memory_role": "untrusted_data", "records": [{"id": "approved-lesson", "content": "Test owner isolation, conflict reuse, and persistence when changing idempotency.", "source": "fixture://shared/lessons/idempotency", "revision": "lesson-1", "disposition": "current"}]},
+    {"id": "supersession", "status": "ok", "memory_role": "untrusted_data", "records": [{"id": "alpha-current", "content": "Reminder retries are keyed by owner and request key.", "source": "fixture://alpha/decisions/retry", "revision": "decision-2", "disposition": "current"}]},
+    {"id": "stale-verification", "status": "ok", "memory_role": "untrusted_data", "records": [{"id": "historical-check", "content": "At source-v1, the reminder check passed.", "source": "fixture://alpha/evidence/check", "revision": "source-v1", "disposition": "historical"}]},
+    {"id": "deleted-record", "status": "ok", "memory_role": "untrusted_data", "records": []},
+    {"id": "poisoned-record", "status": "ok", "memory_role": "untrusted_data", "records": []},
+    {"id": "trust-domain", "status": "ok", "memory_role": "untrusted_data", "records": [{"id": "alpha-current", "content": "Reminder retries are keyed by owner and request key.", "source": "fixture://alpha/decisions/retry", "revision": "decision-2", "disposition": "current"}]},
+    {"id": "task-isolation", "status": "ok", "memory_role": "untrusted_data", "records": []},
+    {"id": "backend-outage", "status": "unavailable", "memory_role": "untrusted_data", "records": []}
+  ]
+}
