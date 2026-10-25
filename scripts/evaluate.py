@@ -103,7 +103,9 @@ def _run_bounded_process(
     """Run a process while draining both diagnostic pipes into fixed budgets."""
     process = subprocess.Popen(
         command, cwd=cwd, env=environment,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        # Raw pipes avoid BufferedReader's lock: closing a buffered pipe can
+        # wait forever for a reader whose inherited writer is still open.
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0,
     )
     captures = {"stdout": bytearray(), "stderr": bytearray()}
     totals = {"stdout": 0, "stderr": 0}

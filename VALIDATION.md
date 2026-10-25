@@ -1,5 +1,22 @@
 # Local software validation
 
+## Inherited-pipe cleanup regression — 25 October 2026 (UTC)
+
+Chief review reproduced a hang in the bounded-output candidate: after a direct
+worker exited, a descendant held its diagnostic pipe open and parent cleanup
+blocked acquiring the buffered reader's lock. A separate six-second watchdog
+expired even though the helper timeout was 0.2 seconds. The probe used an
+isolated POSIX process group and killed/reaped its test processes.
+
+A new regression failed for that reason before the fix. Using unbuffered raw
+subprocess pipes lets cleanup report incomplete capture instead of blocking on
+the buffered-reader lock. The same regression then passed in approximately
+2.1 seconds; the full ResourceWarning-fatal suite passed 37/37 on Linux with
+Python 3.13.5. The regression's process-group cleanup is POSIX-only and skips
+on Windows; it does not establish Windows inherited-pipe behavior or general
+descendant containment. Cross-platform existing checks remain a separate CI
+gate. No fixture, model, Bob client, credential or live service was changed.
+
 ## Bounded worker diagnostics — 13 October 2026 (UTC)
 
 Observed on Linux (`Linux-6.18.44-x86_64-with-glibc2.39`), Python 3.12.14.

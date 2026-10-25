@@ -224,6 +224,42 @@ class OutputLimitTests(unittest.TestCase):
         self.assertIn("\ufffd", result["stdout"])
         self.assertEqual(result["limit_exceeded_channels"], [])
 
+    @unittest.skipUnless(os.name == "posix", "Probe cleanup uses an isolated POSIX process group")
+    def test_inherited_diagnostic_pipe_returns_incomplete_without_hanging(self) -> None:
+        # An independent watchdog must still work if helper cleanup deadlocks.
+        # The probe and its descendant share a new group for exact cleanup.
+        import signal
+
+        probe = (
+            "import importlib.util,json,os,sys; "
+            "s=importlib.util.spec_from_file_location('probe',sys.argv[1]); "
+            "m=importlib.util.module_from_spec(s); s.loader.exec_module(m); "
+            "code=\"import subprocess,sys; subprocess.Popen([sys.executable,'-c',"
+            "'import time; time.sleep(30)'],stderr=subprocess.DEVNULL)\"; "
+            "r=m._run_bounded_process([sys.executable,'-c',code],os.getcwd(),dict(os.environ),0.2); "
+            "print(json.dumps(r),flush=True)"
+        )
+        process = subprocess.Popen(
+            [sys.executable, "-B", "-c", probe, str(SCRIPT)],
+            cwd=str(self.directory), env=self.environment,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True,
+        )
+        try:
+            try:
+                stdout, stderr = process.communicate(timeout=6)
+            except subprocess.TimeoutExpired:
+                self.fail("Helper blocked after direct-worker exit on an inherited diagnostic pipe")
+            self.assertEqual(process.returncode, 0, stderr.decode(errors="replace"))
+            result = json.loads(stdout)
+            self.assertIn("stdout", result["capture_incomplete_channels"])
+            self.assertEqual(result["returncode"], 0)
+        finally:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            process.communicate()
+
     def test_timeout_reaps_the_direct_worker(self) -> None:
         result = self.run_code("while True: pass", timeout=0.1)
         self.assertTrue(result["timed_out"])
