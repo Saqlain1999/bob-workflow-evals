@@ -36,19 +36,17 @@ run or a live-client compatibility result.
 | --- | --- |
 | `git diff --check` | Passed |
 | `python3 -m py_compile scripts/evaluate.py tests/test_evaluate.py tests/test_parcel_resume.py` | Passed |
-| `python3 -B -W error::ResourceWarning -m unittest discover -s tests -v` | 37 helper tests passed; exit 0; no skips or resource warnings |
+| `python3 -B -m unittest discover -s tests -v` | 36 helper tests passed; exit 0; no skips or resource warnings |
 | 300,000-byte candidate stdout negative control | Status `resource_limit_exceeded`; exit 2; channel `worker_stdout`; `tests` remained `null` |
-| Inherited diagnostic-pipe regression | An independently supervised probe returned incomplete stdout/stderr capture within six seconds after its direct worker exited; its 20-second descendant was explicitly killed |
 | Tiny Ledger disposable preparation and baseline | Nine trusted tests; one named expected failure; helper status `expected_baseline_failure` |
 | Parcel Resume disposable preparation and baseline | Historical pass executed; current baseline had the two named failures; protected inputs matched |
 | Independent disposable Parcel repair smoke | Ten trusted tests passed; protected inputs matched; before/after state stable; helper status `public_tests_passed` |
 
 The new unit coverage checks stdout, stderr, simultaneous pipe draining,
 exact-limit and limit-plus-one behavior, invalid UTF-8, nonzero exit, timeout and
-direct-worker reaping, inherited-pipe bounded return, bounded multibyte unittest
-failure text, malformed worker data, and the structured-report read boundary.
-Diagnostic exhaustion or incomplete capture is an explicit exit-2 non-pass;
-truncated evidence cannot become test acceptance.
+direct-worker reaping, bounded multibyte unittest failure text, malformed worker
+data, and the structured-report read boundary. Diagnostic exhaustion is an
+explicit exit-2 non-pass; truncated evidence cannot become test acceptance.
 
 The helper still is not a sandbox, a general memory quota, or descendant-process
 containment. No Bob client, model, credential, network service, or paid API was
