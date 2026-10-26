@@ -1,12 +1,12 @@
 # Bob Workflow Evals
 
-A small, reproducible evaluation starter for IBM Bob coding workflows.
+A small, reproducible evaluation starter for IBM Bob project workflows.
 
-Two tasks offer a first trial: repair a deliberately faulty Python ledger, or
-resume a parcel-pricing change from a constructed checkpoint after the policy
-and a teammate's notes have changed. Each has a fixture, public tests, a
-participant prompt, a manual acceptance checklist, and an offline helper that
-runs trusted tests against a disposable candidate workspace.
+Three tasks offer first trials: repair a deliberately faulty Python ledger,
+resume a parcel-pricing change from a constructed checkpoint, or restructure a
+dense migration runbook while preserving a bounded technical contract. Each has
+a fixture, public tests, a participant prompt, a manual acceptance checklist,
+and an offline helper that runs trusted tests against a disposable workspace.
 
 **Status: evaluation starter. No live Bob evaluation or large-repository
 benchmark has been performed for this repository.** These are small correctness
@@ -22,13 +22,15 @@ results. This is an independent community project, not an IBM product.
 | `tasks/tiny-ledger-atomicity/` | Task definition, agent prompt, and acceptance checklist |
 | `fixtures/parcel-resume/` | Multi-file pricing fixture and ten public tests |
 | `tasks/parcel-resume/` | Constructed interruption, current-state and preservation exercise |
+| `fixtures/technical-writing-fidelity/` | Dense runbook, protected contract, and eight public checks |
+| `tasks/technical-writing-fidelity/` | Fidelity-preserving rewrite prompt and manual review boundary |
 | `scripts/evaluate.py` | Prepare a fresh workspace and collect local test evidence |
 | `tests/` | Checks for the evaluation helper itself, separate from fixture tests |
 | `docs/protocol.md` | How to run and report a manual evaluation |
 | `results/result-template.json` | Structured record for an actual participant run |
 
-The fixtures use integer cents and Python's standard library.
-No packages, services, API keys, or network access are needed for their checks.
+The code fixtures use integer cents; every check uses Python's standard library.
+No packages, services, API keys, or network access are needed.
 The helper makes no model calls. Running Bob is a separate, manual step using
 the installation and account you already have.
 
@@ -137,6 +139,31 @@ state during verification. New runtime files enter the state fingerprints.
 participant used the checkpoint well or actually noticed stale evidence. No
 live Bob observation is inferred from a software test or a passing candidate.
 
+## Try the technical-writing fidelity exercise
+
+[Technical Writing Fidelity](tasks/technical-writing-fidelity/README.md) pairs
+with the Workflow Kit's optional technical-communication skill without
+depending on that skill or its PR. The task asks a participant to restructure a
+dense migration note while preserving exact commands, values, modal strength,
+negation, conditions, and order.
+
+```sh
+python3 scripts/evaluate.py prepare --task technical-writing-fidelity --output runs/writing-001
+python3 scripts/evaluate.py baseline --task technical-writing-fidelity --workspace runs/writing-001 --result runs/writing-001-baseline.json
+```
+
+Use the [writing prompt](tasks/technical-writing-fidelity/AGENT_PROMPT.md), then
+collect candidate evidence with:
+
+```sh
+python3 scripts/evaluate.py candidate --task technical-writing-fidelity --workspace runs/writing-001 --result runs/writing-001-candidate.json
+```
+
+The helper requires eight passing public checks and an unchanged protected
+contract. The [manual checklist](tasks/technical-writing-fidelity/ACCEPTANCE.md)
+still decides scanability and unsupported additions. A pass does not establish
+general semantic equivalence, ASD-STE100 compliance, or live Bob activation.
+
 ## What the helper reports
 
 `--result` writes a JSON report and refuses to overwrite an existing report.
@@ -156,7 +183,7 @@ diagnostic excerpt rather than crashing the helper.
 
 | Exit code | Meaning |
 | --- | --- |
-| `0` | Requested check succeeded: known faulty baseline confirmed, or candidate checks passed (including Parcel preservation and current-state checks) |
+| `0` | Requested check succeeded: known faulty baseline confirmed, or candidate checks passed (including task-specific protected-input/state checks) |
 | `1` | Tests ran, but the requested baseline or candidate condition was not satisfied |
 | `2` | Invalid arguments, file/output error, timeout, diagnostic/report limit, changed inputs during verification, or helper execution problem |
 

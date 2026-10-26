@@ -29,5 +29,15 @@ Use its helper rather than manually copying it:
 python3 scripts/evaluate.py prepare --task parcel-resume --output runs/parcel-001
 ```
 
-Preserve both original fixtures. Their tests are public evidence for these small
-tasks, not large-repository coverage or observed Bob performance.
+`technical-writing-fidelity/` is an original documentation fixture for
+[technical-writing-fidelity-v1](../tasks/technical-writing-fidelity/README.md).
+Its dense runbook already contains the bounded technical contract; two public
+structure checks fail until it is safely reorganized. `contract.json` remains a
+protected input.
+
+```sh
+python3 scripts/evaluate.py prepare --task technical-writing-fidelity --output runs/writing-001
+```
+
+Preserve all three original fixtures. Their tests are public evidence for these
+small tasks, not large-repository coverage or observed Bob performance.
