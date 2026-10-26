@@ -1,21 +1,27 @@
 # Local software validation
 
-## Inherited-pipe cleanup regression — 25 October 2026 (UTC)
+## Inherited diagnostic-pipe follow-up — 26 October 2026 (UTC)
 
-Chief review reproduced a hang in the bounded-output candidate: after a direct
-worker exited, a descendant held its diagnostic pipe open and parent cleanup
-blocked acquiring the buffered reader's lock. A separate six-second watchdog
-expired even though the helper timeout was 0.2 seconds. The probe used an
-isolated POSIX process group and killed/reaped its test processes.
+Blocking review finding EVAL-001 reproduced that the earlier branch could wait
+on `BufferedReader.close()` after a direct worker exited while a descendant kept
+an inherited diagnostic write end open. The 25 October fix switched the worker
+diagnostic pipes to unbuffered raw streams, allowing cleanup to return the
+existing incomplete-capture exit-2 result after the reader grace period. It does
+not add descendant containment.
 
-A new regression failed for that reason before the fix. Using unbuffered raw
-subprocess pipes lets cleanup report incomplete capture instead of blocking on
-the buffered-reader lock. The same regression then passed in approximately
-2.1 seconds; the full ResourceWarning-fatal suite passed 37/37 on Linux with
-Python 3.13.5. The regression's process-group cleanup is POSIX-only and skips
-on Windows; it does not establish Windows inherited-pipe behavior or general
-descendant containment. Cross-platform existing checks remain a separate CI
-gate. No fixture, model, Bob client, credential or live service was changed.
+Observed on Linux with Python 3.12.14:
+
+| Check | Observed result |
+| --- | --- |
+| Independently supervised inherited-pipe probe | Returned incomplete stdout/stderr capture within the six-second watchdog; the 20-second descendant was explicitly killed by PID on POSIX and with `taskkill /T /F` on Windows |
+| `python3 -B -W error::ResourceWarning -m unittest discover -s tests -v` | **37/37 passed**, exit 0; no skips or resource warnings |
+| Python and documentation checks | **11 Python files** parsed with Python 3.10 grammar; **2 JSON files** parsed; **18 local Markdown links** checked across **17 Markdown files**; `git diff --check` passed |
+
+The revised watchdog removes the earlier Windows skip and is exercised by the
+same six-job hosted matrix when that exact head runs. A passing test establishes
+bounded helper return for this constructed case, not safe execution of hostile
+code, general descendant cleanup, continuous resource containment, or live Bob
+behavior.
 
 ## Bounded worker diagnostics — 13 October 2026 (UTC)
 
@@ -27,17 +33,19 @@ run or a live-client compatibility result.
 | --- | --- |
 | `git diff --check` | Passed |
 | `python3 -m py_compile scripts/evaluate.py tests/test_evaluate.py tests/test_parcel_resume.py` | Passed |
-| `python3 -B -m unittest discover -s tests -v` | 36 helper tests passed; exit 0; no skips or resource warnings |
+| `python3 -B -W error::ResourceWarning -m unittest discover -s tests -v` | 37 helper tests passed; exit 0; no skips or resource warnings |
 | 300,000-byte candidate stdout negative control | Status `resource_limit_exceeded`; exit 2; channel `worker_stdout`; `tests` remained `null` |
+| Inherited diagnostic-pipe regression | An independently supervised probe returned incomplete stdout/stderr capture within six seconds after its direct worker exited; its 20-second descendant was explicitly killed |
 | Tiny Ledger disposable preparation and baseline | Nine trusted tests; one named expected failure; helper status `expected_baseline_failure` |
 | Parcel Resume disposable preparation and baseline | Historical pass executed; current baseline had the two named failures; protected inputs matched |
 | Independent disposable Parcel repair smoke | Ten trusted tests passed; protected inputs matched; before/after state stable; helper status `public_tests_passed` |
 
 The new unit coverage checks stdout, stderr, simultaneous pipe draining,
 exact-limit and limit-plus-one behavior, invalid UTF-8, nonzero exit, timeout and
-direct-worker reaping, bounded multibyte unittest failure text, malformed worker
-data, and the structured-report read boundary. Diagnostic exhaustion is an
-explicit exit-2 non-pass; truncated evidence cannot become test acceptance.
+direct-worker reaping, inherited-pipe bounded return, bounded multibyte unittest
+failure text, malformed worker data, and the structured-report read boundary.
+Diagnostic exhaustion or incomplete capture is an explicit exit-2 non-pass;
+truncated evidence cannot become test acceptance.
 
 The helper still is not a sandbox, a general memory quota, or descendant-process
 containment. No Bob client, model, credential, network service, or paid API was
