@@ -14,6 +14,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import unittest
 from datetime import datetime, timezone
@@ -49,6 +50,151 @@ TEAMMATE_NOTE = (
     "\nTeammate note added after the checkpoint: the next documentation review "
     "is on Friday. Keep the existing examples' headings.\n"
 )
+DIAGNOSTIC_LIMIT_BYTES = 256 * 1024
+WORKER_REPORT_LIMIT_BYTES = 512 * 1024
+READ_CHUNK_BYTES = 16 * 1024
+PROCESS_POLL_SECONDS = 0.02
+PROCESS_STOP_GRACE_SECONDS = 1.0
+
+
+class _BoundedTextBuffer(io.TextIOBase):
+    """Retain at most limit UTF-8 bytes while counting discarded output."""
+
+    def __init__(self, limit: int) -> None:
+        super().__init__()
+        self.limit = limit
+        self.bytes_seen = 0
+        self._buffer = bytearray()
+
+    @property
+    def exceeded(self) -> bool:
+        return self.bytes_seen > self.limit
+
+    def write(self, value: str) -> int:
+        if not isinstance(value, str):
+            raise TypeError("text output must be str")
+        encoded = value.encode("utf-8", errors="replace")
+        self.bytes_seen += len(encoded)
+        remaining = self.limit - len(self._buffer)
+        if remaining > 0:
+            self._buffer.extend(encoded[:remaining])
+        return len(value)
+
+    def getvalue(self) -> str:
+        return bytes(self._buffer).decode("utf-8", errors="replace")
+
+
+def _stop_process(process: subprocess.Popen) -> None:
+    """Terminate and reap the direct worker; descendants are not contained."""
+    if process.poll() is not None:
+        return
+    process.terminate()
+    try:
+        process.wait(timeout=PROCESS_STOP_GRACE_SECONDS)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
+
+
+def _run_bounded_process(
+    command: List[str], cwd: str, environment: Dict[str, str], timeout: float,
+    limit: int = DIAGNOSTIC_LIMIT_BYTES,
+) -> Dict[str, Any]:
+    """Run a process while draining both diagnostic pipes into fixed budgets."""
+    process = subprocess.Popen(
+        command, cwd=cwd, env=environment,
+        # Raw pipes avoid BufferedReader's lock: closing a buffered pipe can
+        # wait forever for a reader whose inherited writer is still open.
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0,
+    )
+    captures = {"stdout": bytearray(), "stderr": bytearray()}
+    totals = {"stdout": 0, "stderr": 0}
+    exceeded = set()
+    exceeded_event = threading.Event()
+
+    def drain(channel: str, pipe: Any) -> None:
+        try:
+            while True:
+                chunk = pipe.read(READ_CHUNK_BYTES)
+                if not chunk:
+                    break
+                totals[channel] += len(chunk)
+                remaining = limit - len(captures[channel])
+                if remaining > 0:
+                    captures[channel].extend(chunk[:remaining])
+                if totals[channel] > limit:
+                    exceeded.add(channel)
+                    exceeded_event.set()
+        except (OSError, ValueError):
+            # The parent may close a pipe after reaping a worker whose
+            # descendants kept the inherited write end open.
+            pass
+
+    threads = [
+        threading.Thread(target=drain, args=("stdout", process.stdout), daemon=True),
+        threading.Thread(target=drain, args=("stderr", process.stderr), daemon=True),
+    ]
+    for thread in threads:
+        thread.start()
+
+    deadline = time.monotonic() + timeout
+    timed_out = False
+    while process.poll() is None:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            timed_out = True
+            _stop_process(process)
+            break
+        exceeded_event.wait(min(PROCESS_POLL_SECONDS, remaining))
+        if exceeded_event.is_set():
+            _stop_process(process)
+            break
+
+    process.wait()
+    capture_incomplete = []
+    for channel, thread, pipe in zip(("stdout", "stderr"), threads, (process.stdout, process.stderr)):
+        thread.join(PROCESS_STOP_GRACE_SECONDS)
+        if thread.is_alive():
+            capture_incomplete.append(channel)
+        else:
+            pipe.close()
+
+    # Even unbuffered pipe closure can wait for a reader blocked on Windows.
+    # A live daemon reader therefore retains its pipe until the short-lived
+    # helper exits or the uncontained descendant closes the inherited writer.
+    # Return bounded snapshots now and make incomplete capture a hard non-pass.
+
+    return {
+        "returncode": process.returncode,
+        "stdout": bytes(captures["stdout"]).decode("utf-8", errors="replace"),
+        "stderr": bytes(captures["stderr"]).decode("utf-8", errors="replace"),
+        "bytes_seen": dict(totals),
+        "limit_bytes_per_channel": limit,
+        "limit_exceeded_channels": sorted(exceeded),
+        "capture_incomplete_channels": capture_incomplete,
+        "timed_out": timed_out,
+    }
+
+
+def _read_bounded(path: Path, limit: int) -> Tuple[bytes, bool]:
+    with path.open("rb") as source:
+        content = source.read(limit + 1)
+    return content[:limit], len(content) > limit
+
+
+def _resource_limit(
+    report: Dict[str, Any], channel: str, limit: int, excerpt: Optional[str] = None,
+    bytes_seen: Optional[int] = None,
+) -> None:
+    report["status"] = "resource_limit_exceeded"
+    report["error"] = "Public-test worker exceeded a retained diagnostic limit"
+    report["resource_limit"] = {
+        "channel": channel,
+        "limit_bytes": limit,
+        "bytes_seen": bytes_seen,
+    }
+    if excerpt:
+        report["resource_limit"]["bounded_excerpt"] = excerpt
 
 
 def _task(name: str) -> Dict[str, Any]:
@@ -206,7 +352,7 @@ def _worker(workspace: Path, report_path: Path, task_name: str = "tiny-ledger") 
     sys.dont_write_bytecode = True
     sys.path.insert(0, str(workspace.resolve()))
     suite = unittest.TestLoader().discover(str(_task(task_name)["fixture"] / "tests"), pattern="test_*.py")
-    output = io.StringIO()
+    output = _BoundedTextBuffer(DIAGNOSTIC_LIMIT_BYTES)
     result = unittest.TextTestRunner(stream=output, verbosity=2).run(suite)
     report = {
         "tests_run": result.testsRun,
@@ -218,6 +364,12 @@ def _worker(workspace: Path, report_path: Path, task_name: str = "tiny-ledger") 
         "successful": result.wasSuccessful(),
         "output": output.getvalue(),
     }
+    if output.exceeded:
+        report["resource_limit"] = {
+            "channel": "unittest_output",
+            "limit_bytes": DIAGNOSTIC_LIMIT_BYTES,
+            "bytes_seen": output.bytes_seen,
+        }
     report_path.write_text(json.dumps(report), encoding="utf-8")
 
 
@@ -293,16 +445,54 @@ def check(workspace: Path, phase: str, timeout: float, task_name: str = "tiny-le
         environment["PYTHONDONTWRITEBYTECODE"] = "1"
         environment.pop("PYTHONPATH", None)
         try:
-            completed = subprocess.run(
-                command, cwd=str(workspace), env=environment,
-                capture_output=True, text=True, timeout=timeout, check=False,
+            completed = _run_bounded_process(
+                command, str(workspace), environment, timeout,
             )
-            if completed.returncode != 0 or not worker_report.is_file():
-                report["error"] = "Public-test worker did not produce a valid result"
-                report["worker_stdout"] = completed.stdout
-                report["worker_stderr"] = completed.stderr
+            if completed["timed_out"]:
+                report["error"] = "Public-test worker exceeded the configured timeout"
                 return report, 2
-            tests = json.loads(worker_report.read_text(encoding="utf-8"))
+            if completed["limit_exceeded_channels"]:
+                channels = completed["limit_exceeded_channels"]
+                channel = "worker_" + "+".join(channels)
+                excerpts = "\n".join(
+                    name + ":\n" + completed[name] for name in channels
+                )
+                _resource_limit(
+                    report, channel, completed["limit_bytes_per_channel"], excerpts,
+                    max(completed["bytes_seen"][name] for name in channels),
+                )
+                return report, 2
+            if completed["capture_incomplete_channels"]:
+                report["error"] = (
+                    "Public-test worker diagnostic pipes remained open after the direct worker exited: "
+                    + ", ".join(completed["capture_incomplete_channels"])
+                )
+                return report, 2
+            if completed["returncode"] != 0 or not worker_report.is_file():
+                report["error"] = "Public-test worker did not produce a valid result"
+                report["worker_stdout"] = completed["stdout"]
+                report["worker_stderr"] = completed["stderr"]
+                return report, 2
+            encoded_report, report_exceeded = _read_bounded(
+                worker_report, WORKER_REPORT_LIMIT_BYTES,
+            )
+            if report_exceeded:
+                _resource_limit(
+                    report, "worker_report", WORKER_REPORT_LIMIT_BYTES,
+                    encoded_report.decode("utf-8", errors="replace"),
+                )
+                return report, 2
+            tests = json.loads(encoded_report.decode("utf-8"))
+            if isinstance(tests, dict) and isinstance(tests.get("resource_limit"), dict):
+                details = tests["resource_limit"]
+                _resource_limit(
+                    report,
+                    str(details.get("channel", "unittest_output")),
+                    int(details.get("limit_bytes", DIAGNOSTIC_LIMIT_BYTES)),
+                    tests.get("output") if isinstance(tests.get("output"), str) else None,
+                    details.get("bytes_seen") if type(details.get("bytes_seen")) is int else None,
+                )
+                return report, 2
             list_fields = ("failures", "errors", "skipped", "expected_failures", "unexpected_successes")
             if (
                 not isinstance(tests, dict)
@@ -314,14 +504,11 @@ def check(workspace: Path, phase: str, timeout: float, task_name: str = "tiny-le
             ):
                 raise ValueError("Malformed public-test worker result")
             report["tests"] = tests
-            if completed.stdout:
-                report["candidate_stdout"] = completed.stdout
-            if completed.stderr:
-                report["candidate_stderr"] = completed.stderr
-        except subprocess.TimeoutExpired:
-            report["error"] = "Public-test worker exceeded the configured timeout"
-            return report, 2
-        except (OSError, ValueError) as error:
+            if completed["stdout"]:
+                report["candidate_stdout"] = completed["stdout"]
+            if completed["stderr"]:
+                report["candidate_stderr"] = completed["stderr"]
+        except (json.JSONDecodeError, OSError, UnicodeDecodeError, ValueError) as error:
             report["error"] = "Public-test worker failed: " + str(error)
             return report, 2
         finally:
