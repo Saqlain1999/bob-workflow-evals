@@ -24,6 +24,32 @@ general semantic equivalence, technical correctness, ASD-STE100 compliance, or
 the quality or cause of a live participant's behavior. No model, Bob client,
 credential, network service, or paid API was used.
 
+## Inherited diagnostic-pipe follow-up — 26 October 2026 (UTC)
+
+Blocking review finding EVAL-001 reproduced that the earlier branch could wait
+on `BufferedReader.close()` after a direct worker exited while a descendant kept
+an inherited diagnostic write end open. The 25 October fix switched the worker
+diagnostic pipes to unbuffered raw streams, allowing cleanup to return the
+existing incomplete-capture exit-2 result after the reader grace period. The
+cross-platform follow-up also avoids closing a pipe whose daemon reader is still
+blocked; that pipe is retained until the short-lived helper exits or the
+uncontained descendant closes its inherited writer. It does not add descendant
+containment.
+
+Observed on Linux with Python 3.12.14:
+
+| Check | Observed result |
+| --- | --- |
+| Independently supervised inherited-pipe probe | Returned incomplete stdout/stderr capture within the six-second watchdog; the 20-second descendant was explicitly killed by PID on POSIX and with `taskkill /T /F` on Windows |
+| `python3 -B -W error::ResourceWarning -m unittest discover -s tests -v` | **37/37 passed**, exit 0; no skips or resource warnings |
+| Python and documentation checks | **11 Python files** parsed with Python 3.10 grammar; **2 JSON files** parsed; **18 local Markdown links** checked across **17 Markdown files**; `git diff --check` passed |
+
+The revised watchdog removes the earlier Windows skip and is exercised by the
+same six-job hosted matrix when that exact head runs. A passing test establishes
+bounded helper return for this constructed case, not safe execution of hostile
+code, general descendant cleanup, continuous resource containment, or live Bob
+behavior.
+
 ## Bounded worker diagnostics — 13 October 2026 (UTC)
 
 Observed on Linux (`Linux-6.18.44-x86_64-with-glibc2.39`), Python 3.12.14.
