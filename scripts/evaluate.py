@@ -156,10 +156,13 @@ def _run_bounded_process(
         thread.join(PROCESS_STOP_GRACE_SECONDS)
         if thread.is_alive():
             capture_incomplete.append(channel)
-            pipe.close()
-            thread.join(PROCESS_STOP_GRACE_SECONDS)
         else:
             pipe.close()
+
+    # Even unbuffered pipe closure can wait for a reader blocked on Windows.
+    # A live daemon reader therefore retains its pipe until the short-lived
+    # helper exits or the uncontained descendant closes the inherited writer.
+    # Return bounded snapshots now and make incomplete capture a hard non-pass.
 
     return {
         "returncode": process.returncode,

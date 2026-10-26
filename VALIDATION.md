@@ -6,8 +6,11 @@ Blocking review finding EVAL-001 reproduced that the earlier branch could wait
 on `BufferedReader.close()` after a direct worker exited while a descendant kept
 an inherited diagnostic write end open. The 25 October fix switched the worker
 diagnostic pipes to unbuffered raw streams, allowing cleanup to return the
-existing incomplete-capture exit-2 result after the reader grace period. It does
-not add descendant containment.
+existing incomplete-capture exit-2 result after the reader grace period. The
+cross-platform follow-up also avoids closing a pipe whose daemon reader is still
+blocked; that pipe is retained until the short-lived helper exits or the
+uncontained descendant closes its inherited writer. It does not add descendant
+containment.
 
 Observed on Linux with Python 3.12.14:
 
