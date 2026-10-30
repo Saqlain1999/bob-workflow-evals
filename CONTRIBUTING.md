@@ -23,7 +23,10 @@ their documented fixed task selectors.
 Worker stdout, stderr, unittest diagnostics, and the structured worker report
 have documented byte limits. A limit regression must remain an explicit exit-2
 non-pass, preserve bounded evidence, drain both process pipes, and cover the
-exact-limit boundary. Do not replace these limits with silent truncation.
+exact-limit boundary. A descendant that inherits a diagnostic write end must not
+make the helper block while closing its buffered reader; exercise that condition
+under an independent watchdog and clean up the probe explicitly. Do not replace
+these limits with silent truncation.
 
 For changes to Parcel Resume, verify that preparation executes its real
 historical check, both expected current failures reproduce, protected policy
