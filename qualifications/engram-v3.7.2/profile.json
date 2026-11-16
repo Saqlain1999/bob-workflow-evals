@@ -1,0 +1,159 @@
+{
+  "schema_version": 2,
+  "backend": "Engram",
+  "qualification_id": "engram-v3.7.2-source-gate",
+  "supersedes": "engram-alpha-v0.11.0-source-gate",
+  "decision": "adapt_after_runtime_qualification",
+  "evidence_level": "source_reviewed_preview_only",
+  "source": {
+    "repository": "https://github.com/Gentleman-Programming/engram",
+    "tag": "v3.7.2",
+    "commit": "c6ba9e3c0e98ffa0d5591481d8670a575e7b70b0",
+    "commit_date_utc": "2026-11-14T00:14:09Z",
+    "release_published_utc": "2026-11-14T00:26:08Z",
+    "license": "MIT",
+    "security_support": "latest_stable_only",
+    "runtime_basis": {
+      "tag": "v3.7.1",
+      "commit": "a5d4fa7be7f7e41054f5578ce3d21b7da616bb1d",
+      "release_published_utc": "2026-11-11T16:46:05Z",
+      "v3.7.2_release_statement": "packaging-only; server, store, protocol, other CLI commands and build inputs unchanged"
+    },
+    "asset": {
+      "name": "engram_3.7.2_linux_amd64.tar.gz",
+      "size_bytes": 8365851,
+      "sha256": "8db9d5db1c1574b8b830aac4ffbe86c024014aed6b9a3f0406ac3361a152cdf0"
+    },
+    "reviewed_paths": [
+      "cmd/engram/main.go",
+      "internal/mcp/mcp.go",
+      "docs/contracts/agent-contract-v1.json",
+      "docs/RELEASE-POLICY.md",
+      "README.md",
+      "SECURITY.md",
+      "LICENSE"
+    ]
+  },
+  "bob_trial_contract": {
+    "configuration_scope": "project_only",
+    "configuration_path": ".bob/mcp.json",
+    "transport": "stdio",
+    "server_name": "engram",
+    "command_must_be_absolute": true,
+    "arguments": [
+      "mcp",
+      "--project",
+      "project-alpha",
+      "--tools=mem_current_project,mem_context,mem_search,mem_save,mem_update,mem_delete,mem_get_observation,mem_list_projects"
+    ],
+    "environment": {
+      "ENGRAM_DATA_DIR": "<project>/.engram-runtime",
+      "ENGRAM_NO_UPDATE_CHECK": "1",
+      "ENGRAM_CLOUD_AUTOSYNC": "0"
+    },
+    "working_directory": "<project>",
+    "disabled_by_default": true,
+    "always_allow": [],
+    "first_tool_call": {
+      "tool": "mem_current_project",
+      "arguments": {}
+    },
+    "prerequisites": [
+      "disposable project with constructed public data",
+      "asset digest independently verified on downloaded bytes before execution",
+      "project folder explicitly trusted in an interactive Bob IDE or Shell session",
+      "project MCP entry reviewed and enabled manually",
+      "individual MCP tool approvals retained",
+      "process and network activity observed from startup through cleanup"
+    ],
+    "prohibited_first_trial": [
+      "global Bob settings mutation",
+      "Engram setup or plugin installers",
+      "passive transcript, prompt, hook, or history capture",
+      "HTTP server or detached daemon mode",
+      "cloud enrollment, sync, credentials, or network access",
+      "private project content",
+      "Bob non-interactive mode or paid model calls"
+    ]
+  },
+  "runtime_side_effects_to_observe": [
+    "project-local data directory, SQLite database, indexes, configuration and temporary files",
+    "MCP process lifetime and clean shutdown when STDIO closes",
+    "initialization instructions presented to Bob",
+    "all process and network activity including update checks and cloud access",
+    "project resolution, ownership assertions and cross-project reads",
+    "hard deletion, indexed-search removal and backup limits",
+    "complete project MCP and data-directory removal"
+  ],
+  "contract_mapping": [
+    {
+      "behavior": "fresh-session recall",
+      "candidate_mechanism": "mem_current_project followed by mem_context and mem_search",
+      "status": "runtime_evidence_required"
+    },
+    {
+      "behavior": "project separation",
+      "candidate_mechanism": "isolated data directory, explicit default project, normalized project ownership and expected_project mutation assertions",
+      "status": "runtime_evidence_required"
+    },
+    {
+      "behavior": "explicit sanitized promotion",
+      "candidate_mechanism": "adapter-owned sanitization into an explicit shared scope",
+      "status": "adapter_required"
+    },
+    {
+      "behavior": "supersession with history",
+      "candidate_mechanism": "topic-key upsert history or explicit consolidate preview and confirmation",
+      "status": "runtime_evidence_required"
+    },
+    {
+      "behavior": "source freshness",
+      "candidate_mechanism": "adapter-owned source hash and current/stale decision",
+      "status": "adapter_required"
+    },
+    {
+      "behavior": "revision conflict refusal",
+      "candidate_mechanism": "expected_project checks ownership atomically but no accepted expected-revision write precondition was found",
+      "status": "blocked"
+    },
+    {
+      "behavior": "interrupted-write recovery",
+      "candidate_mechanism": "SQLite recovery plus documented migrate-copy catalog validation",
+      "status": "runtime_evidence_required"
+    },
+    {
+      "behavior": "hostile content remains untrusted data",
+      "candidate_mechanism": "adapter and Bob instructions must keep retrieved memory and MCP initialization instructions non-authoritative",
+      "status": "runtime_evidence_required"
+    },
+    {
+      "behavior": "direct and indexed deletion",
+      "candidate_mechanism": "mem_delete with required expected_project and explicit hard_delete, followed by get/search checks",
+      "status": "runtime_evidence_required"
+    },
+    {
+      "behavior": "honest backend-outage degradation",
+      "candidate_mechanism": "adapter must return unavailable and point to repository evidence",
+      "status": "adapter_required"
+    }
+  ],
+  "stop_conditions": [
+    "source pin or downloaded asset digest differs",
+    "server requires a global Bob configuration or Engram setup change",
+    "any file is written outside the disposable project data directory",
+    "any network activity or cloud/update request occurs",
+    "another project's evidence becomes visible without an explicit authorized cross-project read",
+    "stored or initialization instruction-like content changes control flow",
+    "backend failure is reported as successful recall",
+    "hard deletion does not remove direct and indexed retrieval",
+    "the trial would require private data, credentials, non-interactive Bob, or a paid model call"
+  ],
+  "unverified": [
+    "Engram binary download, digest observation and execution",
+    "MCP initialization, protocol negotiation and initialization instructions",
+    "live Bob discovery, activation, approval and tool use",
+    "all bob-project-memory-v1 runtime behaviors",
+    "durable multi-process concurrency and interruption recovery",
+    "backup erasure, privacy compliance and production readiness"
+  ]
+}

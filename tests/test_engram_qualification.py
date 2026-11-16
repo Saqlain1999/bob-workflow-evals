@@ -9,10 +9,10 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PROFILE_PATH = ROOT / "qualifications" / "engram-v0.11.0" / "profile.json"
+PROFILE_PATH = ROOT / "qualifications" / "engram-v3.7.2" / "profile.json"
 SCRIPT = ROOT / "scripts" / "preview_engram.py"
-EXPECTED_COMMIT = "ed4fe24d97f16f1c362d0c4d6b74bfe4d2caf0c3"
-EXPECTED_SHA256 = "287708d36f27d72dca86d45ea40d269fd57525e8ab8a987c5cf00837998bf8d5"
+EXPECTED_COMMIT = "c6ba9e3c0e98ffa0d5591481d8670a575e7b70b0"
+EXPECTED_SHA256 = "8db9d5db1c1574b8b830aac4ffbe86c024014aed6b9a3f0406ac3361a152cdf0"
 
 
 class EngramQualificationTests(unittest.TestCase):
@@ -23,7 +23,7 @@ class EngramQualificationTests(unittest.TestCase):
         root = Path(self.temporary.name)
         self.project = root / "project-alpha"
         self.project.mkdir()
-        self.binary = root / "reviewed-bin" / "engram-alpha"
+        self.binary = root / "reviewed-bin" / "engram"
 
     def invoke(self, project: Path | str, binary: Path | str) -> subprocess.CompletedProcess:
         return subprocess.run(
@@ -33,10 +33,12 @@ class EngramQualificationTests(unittest.TestCase):
 
     def test_source_pin_license_release_and_digest_are_exact(self) -> None:
         source = self.profile["source"]
-        self.assertEqual(source["tag"], "v0.11.0")
+        self.assertEqual(source["tag"], "v3.7.2")
         self.assertEqual(source["commit"], EXPECTED_COMMIT)
         self.assertEqual(source["license"], "MIT")
-        self.assertEqual(source["release_published_utc"], "2026-11-01T00:05:43Z")
+        self.assertEqual(source["release_published_utc"], "2026-11-14T00:26:08Z")
+        self.assertEqual(source["security_support"], "latest_stable_only")
+        self.assertEqual(source["runtime_basis"]["tag"], "v3.7.1")
         self.assertEqual(source["asset"]["sha256"], EXPECTED_SHA256)
 
     def test_every_backend_neutral_behavior_has_one_honest_mapping(self) -> None:
@@ -48,10 +50,10 @@ class EngramQualificationTests(unittest.TestCase):
         self.assertEqual(len({item["behavior"] for item in mappings}), len(mappings))
         self.assertTrue(all(item["status"] != "qualified" for item in mappings))
 
-    def test_revision_conflict_and_deletion_remain_blocked(self) -> None:
+    def test_revision_conflict_remains_blocked_but_deletion_requires_runtime(self) -> None:
         status = {item["behavior"]: item["status"] for item in self.profile["contract_mapping"]}
         self.assertEqual(status["revision conflict refusal"], "blocked")
-        self.assertEqual(status["direct and indexed deletion"], "blocked")
+        self.assertEqual(status["direct and indexed deletion"], "runtime_evidence_required")
         self.assertEqual(self.profile["decision"], "adapt_after_runtime_qualification")
 
     def test_preview_is_project_local_disabled_and_has_no_auto_approval(self) -> None:
@@ -59,20 +61,36 @@ class EngramQualificationTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         preview = json.loads(result.stdout)
         self.assertEqual(preview["configuration_path"], str(self.project / ".bob" / "mcp.json"))
-        server = preview["configuration"]["mcpServers"]["engram-alpha"]
+        server = preview["configuration"]["mcpServers"]["engram"]
         self.assertEqual(server["command"], str(self.binary))
-        self.assertEqual(server["args"], ["mcp", "--db", str(self.project / ".engram" / "graph.db")])
+        self.assertEqual(
+            server["args"],
+            [
+                "mcp",
+                "--project",
+                "project-alpha",
+                "--tools=mem_current_project,mem_context,mem_search,mem_save,mem_update,mem_delete,mem_get_observation,mem_list_projects",
+            ],
+        )
         self.assertEqual(server["cwd"], str(self.project))
+        self.assertEqual(
+            server["env"],
+            {
+                "ENGRAM_DATA_DIR": str(self.project / ".engram-runtime"),
+                "ENGRAM_NO_UPDATE_CHECK": "1",
+                "ENGRAM_CLOUD_AUTOSYNC": "0",
+            },
+        )
         self.assertTrue(server["disabled"])
         self.assertEqual(server["alwaysAllow"], [])
         self.assertNotIn("url", server)
 
-    def test_preview_emits_brief_for_db_pinned_project(self) -> None:
+    def test_preview_emits_read_only_project_discovery_first(self) -> None:
         result = self.invoke(self.project, self.binary)
         preview = json.loads(result.stdout)
         self.assertEqual(
             preview["first_tool_call"],
-            {"server": "engram-alpha", "tool": "brief", "arguments": {}},
+            {"server": "engram", "tool": "mem_current_project", "arguments": {}},
         )
 
     def test_preview_does_not_write_or_start_a_process(self) -> None:
@@ -96,14 +114,22 @@ class EngramQualificationTests(unittest.TestCase):
 
     def test_first_trial_excludes_unsafe_or_unreviewed_modes(self) -> None:
         prohibited = "\n".join(self.profile["bob_trial_contract"]["prohibited_first_trial"])
-        for expected in ("global Bob", "transcript", "hooks", "HTTP", "cloud", "private", "paid"):
+        for expected in ("global Bob", "setup", "transcript", "hook", "HTTP", "cloud", "private", "non-interactive", "paid"):
             self.assertIn(expected, prohibited)
-        self.assertIn("project folder explicitly trusted", "\n".join(self.profile["bob_trial_contract"]["prerequisites"]))
+        prerequisites = "\n".join(self.profile["bob_trial_contract"]["prerequisites"])
+        self.assertIn("explicitly trusted", prerequisites)
+        self.assertIn("network activity observed", prerequisites)
 
-    def test_detached_core_and_removal_side_effects_are_not_hidden(self) -> None:
+    def test_current_runtime_and_removal_side_effects_are_not_hidden(self) -> None:
         effects = "\n".join(self.profile["runtime_side_effects_to_observe"])
-        for expected in ("detached machine-local core", "mcp.log", "loopback", "registration", "download", "removal"):
+        for expected in ("SQLite", "STDIO", "initialization instructions", "network", "project resolution", "hard deletion", "removal"):
             self.assertIn(expected, effects)
+
+    def test_alpha_cli_and_tool_contract_is_not_reused(self) -> None:
+        contract_text = json.dumps(self.profile["bob_trial_contract"])
+        self.assertNotIn("--db", contract_text)
+        self.assertNotIn('"brief"', contract_text)
+        self.assertEqual(self.profile["supersedes"], "engram-alpha-v0.11.0-source-gate")
 
 
 if __name__ == "__main__":

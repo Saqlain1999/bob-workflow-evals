@@ -10,7 +10,7 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PROFILE_PATH = ROOT / "qualifications" / "engram-v0.11.0" / "profile.json"
+PROFILE_PATH = ROOT / "qualifications" / "engram-v3.7.2" / "profile.json"
 
 
 def absolute_path(value: str, label: str) -> Path:
@@ -22,15 +22,20 @@ def absolute_path(value: str, label: str) -> Path:
 
 def build_preview(project: Path, binary: Path) -> dict[str, object]:
     profile = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
-    database = project / ".engram" / "graph.db"
+    data_directory = project / ".engram-runtime"
     configuration_path = project / ".bob" / "mcp.json"
     server_name = profile["bob_trial_contract"]["server_name"]
     configuration = {
         "mcpServers": {
             server_name: {
                 "command": str(binary),
-                "args": ["mcp", "--db", str(database)],
+                "args": profile["bob_trial_contract"]["arguments"],
                 "cwd": str(project),
+                "env": {
+                    "ENGRAM_DATA_DIR": str(data_directory),
+                    "ENGRAM_NO_UPDATE_CHECK": "1",
+                    "ENGRAM_CLOUD_AUTOSYNC": "0",
+                },
                 "alwaysAllow": [],
                 "disabled": True,
             }
@@ -43,12 +48,12 @@ def build_preview(project: Path, binary: Path) -> dict[str, object]:
         "configuration": configuration,
         "first_tool_call": {
             "server": server_name,
-            "tool": "brief",
+            "tool": "mem_current_project",
             "arguments": {},
         },
         "writes_performed": False,
         "processes_started": False,
-        "next_decision": "review paths and digest; a separate disposable runtime trial remains required",
+        "next_decision": "review paths, environment, tools and digest; a separate disposable runtime trial remains required",
     }
 
 

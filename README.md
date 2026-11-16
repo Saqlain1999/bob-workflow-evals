@@ -168,11 +168,12 @@ discovery, workflow-following, an MCP integration, durable multi-process
 storage, backup erasure, or Engram/Basic Memory/Honcho behavior.
 
 The first backend-specific record is the
-[Engram Alpha v0.11.0 qualification gate](qualifications/engram-v0.11.0/README.md).
-It pins reviewed source and release evidence, maps every contract behavior to a
-candidate mechanism or gap, and provides a non-mutating disabled project-config
-preview. It does not install or execute Engram and leaves runtime adoption
-blocked pending the named cases.
+[Engram v3.7.2 qualification gate](qualifications/engram-v3.7.2/README.md).
+It supersedes the unsupported Alpha v0.11.0 assumptions, pins the current stable
+source and release evidence, maps every contract behavior to a candidate
+mechanism or gap, and provides a non-mutating disabled project-config preview.
+It does not install or execute Engram and leaves runtime adoption blocked
+pending the named cases.
 
 ## What the helper reports
 
