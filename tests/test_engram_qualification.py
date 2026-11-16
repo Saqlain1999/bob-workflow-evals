@@ -41,6 +41,16 @@ class EngramQualificationTests(unittest.TestCase):
         self.assertEqual(source["runtime_basis"]["tag"], "v3.7.1")
         self.assertEqual(source["asset"]["sha256"], EXPECTED_SHA256)
 
+    def test_post_release_project_error_fix_remains_an_explicit_gate(self) -> None:
+        findings = self.profile["post_release_findings"]
+        self.assertEqual(len(findings), 1)
+        finding = findings[0]
+        self.assertEqual(finding["commit"], "82900dc5c61e534f4f3282ff19c211bbff3d5cd5")
+        self.assertFalse(finding["included_in_v3.7.2"])
+        self.assertIn("unexpected MCP project-resolution failure", finding["finding"])
+        self.assertIn("independent proof of actual ambiguity", finding["gate"])
+        self.assertTrue(any("not independently proven" in item for item in self.profile["stop_conditions"]))
+
     def test_every_backend_neutral_behavior_has_one_honest_mapping(self) -> None:
         contract = json.loads(
             (ROOT / "fixtures" / "bob-project-memory" / "contract.json").read_text(encoding="utf-8")

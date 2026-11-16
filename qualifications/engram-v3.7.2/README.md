@@ -42,6 +42,13 @@ The full contract is not established:
   fallback still need adapter behavior;
 - recovery, project isolation, history/supersession, hostile-content handling,
   hard deletion and network silence still require disposable runtime evidence;
+- upstream commit `82900dc5c61e534f4f3282ff19c211bbff3d5cd5`, merged after v3.7.2,
+  corrects the released MCP's classification of unexpected project-resolution
+  failures as `ambiguous_project`. On v3.7.2, a storage/session failure can
+  therefore offer an inapplicable recovery token and project-choice guidance.
+  Do not follow that guidance unless the error is independently shown to be
+  genuine ambiguity; require a stable release containing the fix before
+  accepting project-error recovery evidence;
 - no Bob discovery, activation, tool approval, initialization-instruction
   review, or workflow-following has run.
 
@@ -75,8 +82,9 @@ published asset digest, inspect the generated project config, explicitly trust
 only the disposable workspace, enable only this project server, and approve
 tools individually. Stop if the source or digest differs, another data/config
 location is touched, network activity occurs, stored instruction-like content
-changes control flow, cross-project evidence leaks, or a required mutation
-cannot be demonstrated safely.
+changes control flow, cross-project evidence leaks, a v3.7.2 project-resolution
+failure offers ambiguity recovery without proven ambiguity, or a required
+mutation cannot be demonstrated safely.
 
 Removal for this preview is trivial because it writes nothing. Removal after a
 future trial must cover the reviewed `.bob/mcp.json` entry, the isolated

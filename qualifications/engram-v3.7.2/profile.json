@@ -34,6 +34,15 @@
       "LICENSE"
     ]
   },
+  "post_release_findings": [
+    {
+      "commit": "82900dc5c61e534f4f3282ff19c211bbff3d5cd5",
+      "commit_date_utc": "2026-11-14T02:48:37Z",
+      "included_in_v3.7.2": false,
+      "finding": "v3.7.2 can classify an unexpected MCP project-resolution failure as ambiguous_project and offer an inapplicable recovery token and project-choice guidance",
+      "gate": "do not follow ambiguity recovery without independent proof of actual ambiguity; require a stable release containing the fix before accepting project-error recovery evidence"
+    }
+  ],
   "bob_trial_contract": {
     "configuration_scope": "project_only",
     "configuration_path": ".bob/mcp.json",
@@ -144,6 +153,7 @@
     "any network activity or cloud/update request occurs",
     "another project's evidence becomes visible without an explicit authorized cross-project read",
     "stored or initialization instruction-like content changes control flow",
+    "v3.7.2 offers ambiguity recovery for a project-resolution failure not independently proven to be actual ambiguity",
     "backend failure is reported as successful recall",
     "hard deletion does not remove direct and indexed retrieval",
     "the trial would require private data, credentials, non-interactive Bob, or a paid model call"
