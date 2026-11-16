@@ -1,5 +1,32 @@
 # Local software validation
 
+## Engram v3.7.2 source qualification gate — 16 November 2026 (UTC)
+
+The qualification record pins upstream source, release, licence, and Linux asset
+digest, maps all ten backend-neutral memory behaviors to a candidate mechanism
+or explicit gap, and renders a disabled project-only Bob MCP preview. Engram and
+Bob were not installed or executed.
+
+Observed on Linux with Python 3.12.14:
+
+| Check | Observed result |
+| --- | --- |
+| Pinned source controls | Tag `v3.7.2`, commit `c6ba9e3c0e98ffa0d5591481d8670a575e7b70b0`, MIT licence, 14 November release event, latest-stable security policy and published Linux/amd64 asset SHA-256 matched the reviewed profile |
+| Post-release defect gate | Exact later commit `82900dc5c61e534f4f3282ff19c211bbff3d5cd5` fixes v3.7.2's false `ambiguous_project` classification for unexpected project-resolution failures; the profile rejects unproven ambiguity recovery and requires a fixed stable release before accepting that evidence |
+| Supersession control | Alpha v0.11.0 repository, asset, `mcp --db`, `brief`, detached-core and unsupported-release assumptions were removed rather than carried into the current gate |
+| Contract mapping | All ten `bob-project-memory-v1` behaviors mapped once; none marked qualified; revision conflict remained blocked while hard deletion moved only to runtime-evidence-required |
+| Preview controls | Project-only `.bob/mcp.json`; absolute command/project/data paths; explicit project/tool allowlist; update checks and cloud autosync disabled; read-only project discovery first; disabled by default; no automatic approvals |
+| Preservation controls | No file was written, no process was started, and relative project/binary paths were rejected |
+| Runtime-side-effect record | SQLite/index/temp files, STDIO lifetime, initialization instructions, process/network activity, project ownership, hard deletion, backups and removal all remain explicit runtime observations |
+| `python3 -B -W error::ResourceWarning -m unittest discover -s tests -v` | **54/54 passed**, exit 0; no skips or resource warnings |
+
+This is static source-review and preview-harness evidence. It is not Engram
+runtime behavior, asset verification on a downloaded file, MCP initialization,
+live Bob discovery or tool use, contract acceptance, backup erasure, privacy
+compliance, or production readiness. A later disposable trial must verify the
+asset digest independently and retain repository evidence as the outage
+fallback.
+
 ## Backend-neutral project-memory fixture — 4 November 2026 (UTC)
 
 The new `bob-project-memory-v1` fixture uses only constructed public data and
