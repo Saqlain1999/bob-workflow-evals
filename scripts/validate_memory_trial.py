@@ -18,9 +18,22 @@ class RecordError(ValueError):
     """An evidence record is malformed or overclaims its evidence."""
 
 
+def reject_duplicate_names(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    """Build a JSON object while rejecting ambiguous repeated names."""
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise RecordError(f"duplicate object name: {key}")
+        value[key] = item
+    return value
+
+
 def load_object(path: Path, label: str) -> dict[str, Any]:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
+        value = json.loads(
+            path.read_text(encoding="utf-8"),
+            object_pairs_hook=reject_duplicate_names,
+        )
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         raise RecordError(f"cannot read {label}: {exc}") from exc
     if not isinstance(value, dict):

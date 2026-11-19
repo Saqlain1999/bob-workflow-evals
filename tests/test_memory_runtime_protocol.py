@@ -22,13 +22,22 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="memory-trial-record-") as directory:
             path = Path(directory) / "record.json"
             path.write_text(json.dumps(record), encoding="utf-8")
-            before = path.read_bytes()
-            result = subprocess.run(
-                [sys.executable, "-B", str(SCRIPT), str(path)],
-                cwd=str(ROOT), text=True, capture_output=True, timeout=10, check=False,
-            )
-            self.assertEqual(path.read_bytes(), before)
-            return result
+            return self.validate_path_without_mutation(path)
+
+    def write_raw_and_validate(self, content: str) -> subprocess.CompletedProcess:
+        with tempfile.TemporaryDirectory(prefix="memory-trial-record-") as directory:
+            path = Path(directory) / "record.json"
+            path.write_text(content, encoding="utf-8")
+            return self.validate_path_without_mutation(path)
+
+    def validate_path_without_mutation(self, path: Path) -> subprocess.CompletedProcess:
+        before = path.read_bytes()
+        result = subprocess.run(
+            [sys.executable, "-B", str(SCRIPT), str(path)],
+            cwd=str(ROOT), text=True, capture_output=True, timeout=10, check=False,
+        )
+        self.assertEqual(path.read_bytes(), before)
+        return result
 
     def executed(self, decision: str = "qualified", client: str = "direct_mcp") -> dict:
         record = copy.deepcopy(self.record)
@@ -94,6 +103,24 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
         result = self.write_and_validate(self.record)
         self.assertEqual(result.returncode, 2)
         self.assertIn("not an allowed pinned profile", result.stderr)
+
+    def test_duplicate_top_level_or_nested_names_are_rejected(self) -> None:
+        raw = TEMPLATE.read_text(encoding="utf-8")
+        top_level = raw.replace(
+            '  "decision": "not_run",',
+            '  "decision": "qualified",\n  "decision": "not_run",',
+            1,
+        )
+        nested = raw.replace(
+            '    "asset_digest_verified": false',
+            '    "asset_digest_verified": true,\n    "asset_digest_verified": false',
+            1,
+        )
+        for label, content in (("top-level", top_level), ("nested", nested)):
+            with self.subTest(label=label):
+                result = self.write_raw_and_validate(content)
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("duplicate object name", result.stderr)
 
     def test_wrong_profile_digest_is_rejected(self) -> None:
         self.record["source"]["asset_sha256"] = "0" * 64
