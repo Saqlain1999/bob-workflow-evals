@@ -59,7 +59,8 @@ a qualification claim. A runtime record does not establish production
 readiness. Every executed IBM Bob record, even when blocked or incomplete,
 must name an interactive client mode and version, record explicit workspace
 trust, and set the live-observation marker. Non-interactive Bob Shell is outside
-this manual-approval protocol.
+this manual-approval protocol. Global, workspace, plugin, and policy lifecycle
+hooks must also be disabled; a hook-resolved permission is not manual approval.
 
 Explain the problem, the proposed change, and the observed checks. Avoid
 unnecessary package dependencies, model SDKs, credentials, and network calls.

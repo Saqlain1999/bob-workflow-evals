@@ -22,8 +22,12 @@ model, or contact a service.
    artifact.
 3. Independently verify the artifact digest against the selected profile.
 4. Review the disabled project-only STDIO preview and retain manual tool
-   approvals. If Bob is used, use an interactive IDE or Shell session and
-   record the client mode, version, and explicit folder-trust decision. Bob
+   approvals. Disable global, workspace, plugin, and policy lifecycle hooks;
+   permission hooks can resolve approvals without user interaction, while other
+   hooks can inject context, change inputs, execute commands, or call HTTPS
+   endpoints. Stop if an enforced hook cannot be disabled. If Bob is used, use
+   an interactive IDE or Shell session and record the client mode, version, and
+   explicit folder-trust decision. Bob
    Shell non-interactive sessions are outside this first protocol because
    [their tools are pre-approved](https://bob.ibm.com/docs/shell/getting-started/start-bobshell-non-interactive),
    which conflicts with the manual-approval safeguard.
@@ -35,9 +39,10 @@ answer is “none”; include how each observation was made. Record MCP server
 instructions returned during initialization separately because current Bob IDE
 can forward them into the system prompt. Exercise the same ten behaviours for
 each backend. Keep repository evidence as the outage fallback.
-Stop on a digest mismatch, global-setting requirement, cross-project disclosure,
-instruction-like stored content changing control flow, a stale write being
-accepted, dishonest outage success, or incomplete deletion.
+Stop on a digest mismatch, global-setting or lifecycle-hook requirement,
+cross-project disclosure, instruction-like stored content changing control
+flow, a stale write being accepted, dishonest outage success, or incomplete
+deletion.
 
 Validate a record from the repository root:
 

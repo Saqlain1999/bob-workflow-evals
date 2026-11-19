@@ -170,8 +170,12 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("direct_mcp client requires direct_mcp client_mode", result.stderr)
 
-    def test_global_settings_or_automatic_approval_are_rejected(self) -> None:
-        for safeguard in ("global_settings_changed", "automatic_tool_approval"):
+    def test_global_settings_automatic_approval_or_hooks_are_rejected(self) -> None:
+        for safeguard in (
+            "global_settings_changed",
+            "automatic_tool_approval",
+            "lifecycle_hooks_enabled",
+        ):
             with self.subTest(safeguard=safeguard):
                 record = copy.deepcopy(self.record)
                 record["safeguards"][safeguard] = True

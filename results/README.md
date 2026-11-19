@@ -32,4 +32,5 @@ unexecuted Engram v3.7.2 result. Rebind all profile, qualification, commit and
 asset-digest fields together to use Basic Memory v1.0.0; superseded profiles are
 rejected. Validate a completed copy outside the candidate workspace; the
 validator confirms claim consistency, rejects duplicate JSON object names, and
-does not run or qualify a backend.
+does not run or qualify a backend. Schema 3 also requires lifecycle hooks to be
+disabled so a permission hook cannot substitute for a manual approval.

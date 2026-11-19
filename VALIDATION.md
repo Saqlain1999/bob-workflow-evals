@@ -23,6 +23,7 @@ Observed on Linux with Python 3.12.14:
 | Template validation | Exact Engram v3.7.2 template and Basic Memory v1.0.0 rebinding valid as `not_run`; record bytes unchanged |
 | Supersession control | Engram Alpha v0.11.0 profile rejected before profile loading; no missing legacy file can become trial evidence |
 | JSON ambiguity control | Conflicting top-level and nested duplicate object names rejected with source bytes unchanged |
+| Manual-approval control | Schema 3 rejects any enabled lifecycle hook, including permission-resolution hooks that could approve without user interaction |
 
 The controls cover exact profile/contract binding, digest and authorization
 failures, forbidden global/automatic settings, missing/duplicate/reordered
@@ -33,6 +34,9 @@ qualified trials, non-interactive Bob rejection, production-readiness rejection,
 record preservation, and rejection of the superseded Engram profile. Hosted
 exact-head results belong in the pull request. The shared strict loader applies
 to submitted records and the protocol, contract, and profile files it binds.
+The lifecycle-hook safeguard covers global, workspace, plugin, and policy hooks;
+the protocol stops instead of assuming a hook-resolved action was manually
+approved.
 
 This is protocol-validation evidence. It is not a third-party download,
 installation, runtime trial, live Bob observation, backend qualification,
