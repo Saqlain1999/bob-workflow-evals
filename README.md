@@ -188,7 +188,7 @@ The backend-neutral
 defines one evidence shape for an eventual authorized Engram or Basic Memory
 trial. Its read-only validator checks the exact source/digest binding, all ten
 behaviours, safety boundaries, side effects (including MCP initialization
-instructions), cleanup, and claim level. The
+instructions), cleanup, claim level, and the complete reviewed field set. The
 included template remains `not_run`; neither the protocol nor its tests execute
 third-party software or grant permission to do so.
 

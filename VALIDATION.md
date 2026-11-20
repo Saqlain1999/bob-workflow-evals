@@ -1,6 +1,6 @@
 # Local software validation
 
-## Backend-neutral memory runtime evidence protocol — updated 19 November 2026 (UTC)
+## Backend-neutral memory runtime evidence protocol — updated 20 November 2026 (UTC)
 
 The protocol binds a later authorized Engram or Basic Memory trial to its exact
 reviewed profile and digest, the ten `bob-project-memory-v1` behaviours,
@@ -15,14 +15,15 @@ Observed on Linux with Python 3.12.14:
 
 | Check | Observed result |
 | --- | --- |
-| ResourceWarning-fatal combined suite | 79/79 passed |
-| Runtime-protocol focused suite | 15/15 passed |
+| ResourceWarning-fatal combined suite | 80/80 passed |
+| Runtime-protocol focused suite | 16/16 passed |
 | Python 3.10 grammar | 20 files parsed |
 | JSON syntax | 7 files parsed |
 | Local Markdown links | 33 links across 28 files; no missing targets |
 | Template validation | Exact Engram v3.7.2 template and Basic Memory v1.0.0 rebinding valid as `not_run`; record bytes unchanged |
 | Supersession control | Engram Alpha v0.11.0 profile rejected before profile loading; no missing legacy file can become trial evidence |
 | JSON ambiguity control | Conflicting top-level and nested duplicate object names rejected with source bytes unchanged |
+| Schema ambiguity control | Unknown top-level, claim, and per-behavior fields rejected instead of remaining unchecked evidence |
 | Manual-approval control | Schema 3 rejects any enabled lifecycle hook, including permission-resolution hooks that could approve without user interaction |
 
 The controls cover exact profile/contract binding, digest and authorization
@@ -34,6 +35,8 @@ qualified trials, non-interactive Bob rejection, production-readiness rejection,
 record preservation, and rejection of the superseded Engram profile. Hosted
 exact-head results belong in the pull request. The shared strict loader applies
 to submitted records and the protocol, contract, and profile files it binds.
+The runtime record itself has an exact allowed field set at every object depth;
+schema extensions require a reviewed version change instead of an ignored field.
 The lifecycle-hook safeguard covers global, workspace, plugin, and policy hooks;
 the protocol stops instead of assuming a hook-resolved action was manually
 approved.

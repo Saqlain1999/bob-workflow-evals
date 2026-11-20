@@ -54,7 +54,10 @@ Exit `0` means the record is internally consistent with its decision. It does
 not mean the backend qualified: inspect the emitted decision. Exit `2` means
 the evidence record is invalid or overclaims its observations. The validator
 rejects repeated JSON object names at any depth rather than silently selecting
-one of two conflicting decisions, identities, safeguards, or observations.
+one of two conflicting decisions, identities, safeguards, or observations. It
+also rejects missing, misspelled, or unrecognized fields at every level of the
+runtime record; extending the evidence shape requires an explicit schema change
+rather than an unchecked extra claim.
 
 `qualified` is intentionally narrow. It requires all ten behaviours to pass,
 successful cleanup, and complete side-effect evidence. It never means production

@@ -53,7 +53,8 @@ state, and keep licence obligations distinct from technical compatibility.
 Runtime trial records must use the shared memory protocol, bind to one allowed
 profile and exact digest, retain constructed public data and manual approvals,
 and record process, file, network, model-download, MCP initialization-instruction
-and cleanup observations.
+and cleanup observations. Keep the schema exact: missing, misspelled, and
+unrecognized fields must fail rather than becoming unchecked evidence.
 Never turn a structurally valid `not_run`, `incomplete`, or `blocked` record into
 a qualification claim. A runtime record does not establish production
 readiness. Every executed IBM Bob record, even when blocked or incomplete,

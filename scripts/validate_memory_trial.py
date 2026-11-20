@@ -48,6 +48,20 @@ def require_object(parent: dict[str, Any], key: str) -> dict[str, Any]:
     return value
 
 
+def require_exact_keys(value: dict[str, Any], label: str, expected: set[str]) -> None:
+    """Reject missing, misspelled, or unreviewed evidence fields."""
+    actual = set(value)
+    missing = sorted(expected - actual)
+    unknown = sorted(actual - expected)
+    if missing or unknown:
+        details: list[str] = []
+        if missing:
+            details.append(f"missing {', '.join(missing)}")
+        if unknown:
+            details.append(f"unknown {', '.join(unknown)}")
+        raise RecordError(f"{label} has invalid fields: {'; '.join(details)}")
+
+
 def nonempty_text(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
@@ -55,6 +69,13 @@ def nonempty_text(value: Any) -> bool:
 def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
     protocol = load_object(root / PROTOCOL_PATH.relative_to(ROOT), "runtime protocol")
     contract = load_object(root / protocol["contract_path"], "project-memory contract")
+
+    require_exact_keys(record, "record", {
+        "schema_version", "protocol_id", "run_id", "backend_profile",
+        "backend_qualification_id", "source", "authorization", "environment",
+        "safeguards", "side_effects", "behaviors", "cleanup", "decision",
+        "decision_rationale", "claims", "limitations",
+    })
 
     if record.get("schema_version") != protocol["schema_version"]:
         raise RecordError("schema_version does not match the runtime protocol")
@@ -69,6 +90,9 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
         raise RecordError("backend_qualification_id does not match the profile")
 
     source = require_object(record, "source")
+    require_exact_keys(source, "source", {
+        "commit", "asset_sha256", "asset_digest_verified",
+    })
     profile_source = require_object(profile, "source")
     profile_asset = require_object(profile_source, "asset")
     if source.get("commit") != profile_source.get("commit"):
@@ -79,6 +103,9 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
         raise RecordError("source.asset_digest_verified must be boolean")
 
     authorization = require_object(record, "authorization")
+    require_exact_keys(authorization, "authorization", {
+        "third_party_execution_authorized", "authorization_reference",
+    })
     authorized = authorization.get("third_party_execution_authorized")
     if not isinstance(authorized, bool):
         raise RecordError("authorization flag must be boolean")
@@ -89,6 +116,10 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
         raise RecordError("unauthorized execution cannot name an authorization reference")
 
     environment = require_object(record, "environment")
+    require_exact_keys(environment, "environment", {
+        "operating_system", "architecture", "client", "client_mode",
+        "client_version", "workspace_trust", "transport", "project_scope",
+    })
     client = environment.get("client")
     if client not in protocol["allowed_clients"]:
         raise RecordError("environment.client is not allowed")
@@ -101,6 +132,7 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
         raise RecordError("the first runtime protocol requires disposable project scope")
 
     safeguards = require_object(record, "safeguards")
+    require_exact_keys(safeguards, "safeguards", set(protocol["required_safeguards"]))
     for key, expected in protocol["required_safeguards"].items():
         if safeguards.get(key) is not expected:
             raise RecordError(f"required safeguard {key} must be {str(expected).lower()}")
@@ -110,6 +142,7 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
         "processes", "files", "network", "model_downloads",
         "mcp_initialization_instructions",
     )
+    require_exact_keys(side_effects, "side_effects", set(side_effect_keys))
     for key in side_effect_keys:
         value = side_effects.get(key)
         if not isinstance(value, list) or not all(nonempty_text(item) for item in value):
@@ -124,6 +157,9 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
         raise RecordError("behaviors must appear exactly once in contract order")
     statuses: list[str] = []
     for item in behaviors:
+        require_exact_keys(item, f"behavior {item.get('behavior')!r}", {
+            "behavior", "status", "evidence",
+        })
         status = item.get("status")
         if status not in protocol["allowed_behavior_statuses"]:
             raise RecordError(f"invalid status for {item['behavior']}")
@@ -136,6 +172,7 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
 
     cleanup = require_object(record, "cleanup")
     cleanup_flags = ("attempted", "processes_stopped", "project_files_removed", "machine_state_removed_or_absent")
+    require_exact_keys(cleanup, "cleanup", set(cleanup_flags) | {"notes"})
     for key in cleanup_flags:
         if not isinstance(cleanup.get(key), bool):
             raise RecordError(f"cleanup.{key} must be boolean")
@@ -154,6 +191,9 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
         raise RecordError("limitations must contain at least one non-empty statement")
 
     claims = require_object(record, "claims")
+    require_exact_keys(claims, "claims", {
+        "backend_runtime_qualified", "live_bob_observed", "production_ready",
+    })
     for key in ("backend_runtime_qualified", "live_bob_observed", "production_ready"):
         if not isinstance(claims.get(key), bool):
             raise RecordError(f"claims.{key} must be boolean")

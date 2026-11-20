@@ -122,6 +122,20 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 2)
                 self.assertIn("duplicate object name", result.stderr)
 
+    def test_unknown_top_level_nested_and_behavior_fields_are_rejected(self) -> None:
+        mutations = (
+            ("record", lambda record: record.update({"attestation": "certified"})),
+            ("claims", lambda record: record["claims"].update({"production_compatible": True})),
+            ("behavior", lambda record: record["behaviors"][0].update({"reviewer": "unverified"})),
+        )
+        for label, mutate in mutations:
+            with self.subTest(label=label):
+                record = copy.deepcopy(self.record)
+                mutate(record)
+                result = self.write_and_validate(record)
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("unknown", result.stderr)
+
     def test_wrong_profile_digest_is_rejected(self) -> None:
         self.record["source"]["asset_sha256"] = "0" * 64
         result = self.write_and_validate(self.record)
