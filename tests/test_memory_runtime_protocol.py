@@ -84,6 +84,34 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
         self.assertFalse(self.record["authorization"]["third_party_execution_authorized"])
         self.assertFalse(any(self.record["claims"].values()))
 
+    def test_not_run_cannot_claim_run_host_version_or_trust_observations(self) -> None:
+        mutations = (
+            ("run_id", lambda record: record.update({"run_id": "unexecuted-run"})),
+            (
+                "operating_system",
+                lambda record: record["environment"].update({"operating_system": "claimed-os"}),
+            ),
+            (
+                "architecture",
+                lambda record: record["environment"].update({"architecture": "claimed-arch"}),
+            ),
+            (
+                "client_version",
+                lambda record: record["environment"].update({"client_version": "claimed-version"}),
+            ),
+            (
+                "workspace_trust",
+                lambda record: record["environment"].update({"workspace_trust": "explicit_trust"}),
+            ),
+        )
+        for label, mutate in mutations:
+            with self.subTest(label=label):
+                record = copy.deepcopy(self.record)
+                mutate(record)
+                result = self.write_and_validate(record)
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("not_run", result.stderr)
+
     def test_profiles_and_contract_are_pinned_in_protocol(self) -> None:
         protocol = json.loads(
             (ROOT / "qualifications" / "memory-runtime-trial-v1" / "protocol.json").read_text(encoding="utf-8")

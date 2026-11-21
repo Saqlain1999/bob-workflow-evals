@@ -203,6 +203,13 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
     if decision == "not_run":
         if authorized or client != "not_run" or any(status != "not_run" for status in statuses):
             raise RecordError("not_run requires no authorization, client, or observed behavior")
+        if record.get("run_id") is not None:
+            raise RecordError("not_run cannot claim a run_id")
+        for key in ("operating_system", "architecture", "client_version"):
+            if environment.get(key) is not None:
+                raise RecordError(f"not_run cannot claim environment.{key}")
+        if environment.get("workspace_trust") != "not_assessed":
+            raise RecordError("not_run requires workspace trust to remain not_assessed")
         if source["asset_digest_verified"]:
             raise RecordError("not_run cannot claim verification of an unobserved trial asset")
         if any(side_effects[key] for key in side_effect_keys):

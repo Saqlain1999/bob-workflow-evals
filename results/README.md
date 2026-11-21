@@ -33,6 +33,7 @@ asset-digest fields together to use Basic Memory v1.0.0; superseded profiles are
 rejected. Validate a completed copy outside the candidate workspace; the
 validator confirms claim consistency, rejects duplicate JSON object names, and
 rejects fields outside the reviewed schema rather than ignoring typoed or extra
-claims. It does not run or qualify a backend. Schema 3 also requires lifecycle
-hooks to be disabled so a permission hook cannot substitute for a manual
-approval.
+claims. A `not_run` record cannot carry run, host, client-version, trust,
+side-effect, cleanup, or behavior observations. The validator does not run or
+qualify a backend. Schema 3 also requires lifecycle hooks to be disabled so a
+permission hook cannot substitute for a manual approval.

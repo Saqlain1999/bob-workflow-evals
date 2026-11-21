@@ -15,6 +15,11 @@ execution unauthorized and every behaviour `not_run`. The validator reads JSON
 only: it does not download an asset, write Bob settings, start a process, call a
 model, or contact a service.
 
+A `not_run` record must remain wholly unobserved: it cannot name a run ID, host
+operating system or architecture, client version, explicit workspace-trust
+decision, verified asset, side effect, cleanup action, or behavior evidence.
+Record those facts only after separately authorized execution actually begins.
+
 ## Before an authorized trial
 
 1. Use a disposable project containing only the constructed public fixture.
