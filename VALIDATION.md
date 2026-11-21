@@ -1,5 +1,51 @@
 # Local software validation
 
+## Backend-neutral memory runtime evidence protocol — updated 21 November 2026 (UTC)
+
+The protocol binds a later authorized Engram or Basic Memory trial to its exact
+reviewed profile and digest, the ten `bob-project-memory-v1` behaviours,
+side-effect and MCP initialization-instruction observations, cleanup, and a
+fail-closed claim decision. The protocol was replayed onto the reconciled
+Basic Memory predecessor and rebound from the removed Engram Alpha v0.11.0
+profile to the current reviewed Engram v3.7.2 profile. The
+included record remains unauthorized and `not_run`; the validator reads JSON
+only and starts no backend or Bob process.
+
+Observed on Linux with Python 3.12.14:
+
+| Check | Observed result |
+| --- | --- |
+| ResourceWarning-fatal combined suite | 81/81 passed |
+| Runtime-protocol focused suite | 17/17 passed |
+| Python 3.10 grammar | 20 files parsed |
+| JSON syntax | 7 files parsed |
+| Local Markdown links | 33 links across 28 files; no missing targets |
+| Template validation | Exact Engram v3.7.2 template and Basic Memory v1.0.0 rebinding valid as `not_run`; record bytes unchanged |
+| Supersession control | Engram Alpha v0.11.0 profile rejected before profile loading; no missing legacy file can become trial evidence |
+| JSON ambiguity control | Conflicting top-level and nested duplicate object names rejected with source bytes unchanged |
+| Schema ambiguity control | Unknown top-level, claim, and per-behavior fields rejected instead of remaining unchecked evidence |
+| Unexecuted-state control | `not_run` rejects run ID, host identity, client version, explicit trust, verified assets, observations and cleanup claims |
+| Manual-approval control | Schema 3 rejects any enabled lifecycle hook, including permission-resolution hooks that could approve without user interaction |
+
+The controls cover exact profile/contract binding, digest and authorization
+failures, forbidden global/automatic settings, missing/duplicate/reordered
+behaviours, incomplete evidence, cleanup and side-effect requirements, blocked
+decisions, run and executed-host identity, client-mode matching, live Bob
+version/trust/observation evidence for blocked and incomplete as well as
+qualified trials, non-interactive Bob rejection, production-readiness rejection,
+record preservation, and rejection of the superseded Engram profile. Hosted
+exact-head results belong in the pull request. The shared strict loader applies
+to submitted records and the protocol, contract, and profile files it binds.
+The runtime record itself has an exact allowed field set at every object depth;
+schema extensions require a reviewed version change instead of an ignored field.
+The lifecycle-hook safeguard covers global, workspace, plugin, and policy hooks;
+the protocol stops instead of assuming a hook-resolved action was manually
+approved.
+
+This is protocol-validation evidence. It is not a third-party download,
+installation, runtime trial, live Bob observation, backend qualification,
+licence/privacy review, or production-readiness result.
+
 ## Basic Memory v1.0.0 source qualification gate — reconciled 17 November 2026 (UTC)
 
 The Basic Memory gate pins the exact v1.0.0 source commit and published wheel

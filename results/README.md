@@ -23,3 +23,17 @@ directory. Before contributing a record, remove credentials, confidential code,
 private paths, and unrelated conversation content. Explain redactions and
 include enough evidence to assess the specific claim. Review the participant's
 code and test changes before recording manual acceptance.
+
+Memory backend runtime evidence uses the separate
+[`memory-runtime-trial-template.json`](memory-runtime-trial-template.json) and
+the [runtime protocol](../qualifications/memory-runtime-trial-v1/README.md).
+That template is not participant evidence and defaults to an unauthorized,
+unexecuted Engram v3.7.2 result. Rebind all profile, qualification, commit and
+asset-digest fields together to use Basic Memory v1.0.0; superseded profiles are
+rejected. Validate a completed copy outside the candidate workspace; the
+validator confirms claim consistency, rejects duplicate JSON object names, and
+rejects fields outside the reviewed schema rather than ignoring typoed or extra
+claims. A `not_run` record cannot carry run, host, client-version, trust,
+side-effect, cleanup, or behavior observations. The validator does not run or
+qualify a backend. Schema 3 also requires lifecycle hooks to be disabled so a
+permission hook cannot substitute for a manual approval.
