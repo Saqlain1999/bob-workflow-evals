@@ -46,7 +46,13 @@ licence, and reviewed asset digest when one exists. Map every Project Memory
 behavior to evidence, adapter work, or a named block. Preview helpers must be
 non-mutating and must not install or execute a backend, edit global Bob settings,
 grant automatic approval, capture transcripts, or turn missing runtime evidence
-into a compatibility claim.
+into a compatibility claim. Package-based records must also expose interpreter
+and dependency requirements, avoid unversioned resolution, isolate backend
+state, and keep licence obligations distinct from technical compatibility.
+Project separation covers metadata as well as note bodies: an explicit relation
+must not reveal another project's title, path, external ID, or graph links.
+Treat source-supported cross-project traversal as a block until the exact
+artifact or reviewed wrapper provides a fail-closed confinement control.
 
 Explain the problem, the proposed change, and the observed checks. Avoid
 unnecessary package dependencies, model SDKs, credentials, and network calls.

@@ -1,5 +1,39 @@
 # Local software validation
 
+## Basic Memory v1.0.0 source qualification gate — updated 23 November 2026 (UTC)
+
+The Basic Memory gate pins the exact v1.0.0 source commit and published wheel
+digest, maps all ten backend-neutral memory behaviors to a candidate mechanism
+or explicit adapter/runtime gap, and renders an isolated, disabled project-only
+Bob MCP preview. Basic Memory, the wheel, `uvx`, Bob, and every MCP tool remained
+unexecuted. The original 6 November source review was replayed onto the exact
+Engram v3.7.2 gate after that predecessor branch changed; no result from the
+superseded stacked head is carried forward as current execution evidence.
+Exact pinned source review now also confirms that v1.0.0 deliberately expands
+explicit relations across projects and hydrates target metadata. The gate is
+therefore deferred before execution pending a reviewed local project-confinement
+control and the A-to-B disclosure fixture; unreleased upstream fixes are not
+carried into the pinned release.
+
+| Check | Observed result |
+| --- | --- |
+| ResourceWarning-fatal combined suite | 65/65 passed on Linux 6.18.57 with Python 3.12.14 |
+| Basic Memory focused suite | 11/11 passed |
+| Engram predecessor preservation | Current v3.7.2 focused suite passed 11/11 after reconciliation |
+| Python 3.10 grammar | 18 files parsed |
+| JSON syntax | 5 files parsed |
+| Local Markdown links | 28 links across 27 files; no missing targets |
+| Preview preservation | Absolute-path controls passed; no file created and no process started |
+| Project-separation source control | Pinned v1.0.0 cross-project traversal and metadata hydration recorded as a source block; stable confined release or reviewed wrapper plus A-to-B disclosure fixture required before execution |
+| Inherited-pipe watchdog regression | Reproduced a false diagnostic limit under suite-wide fatal ResourceWarning; isolated that deliberate descendant probe and passed focused/full reruns |
+| First hosted matrix | Run 42188595883 exposed mixed separators in the Windows config-directory preview; that head is superseded and its results are not carried forward |
+| Historical corrected hosted matrices | Runs 42188906953 and 42189216479 validated the Windows path correction on superseded heads; neither result is carried onto the reconciled head |
+| Reconciled hosted matrix | Must execute on the published exact head; the pull-request description records that final run and job/step evidence |
+
+This is static source-review and preview-harness evidence. It is not Basic
+Memory installation, dependency resolution, Bob compatibility, MCP behavior,
+memory-contract acceptance, AGPL compliance review, or production readiness.
+
 ## Engram v3.7.2 source qualification gate — 16 November 2026 (UTC)
 
 The qualification record pins upstream source, release, licence, and Linux asset

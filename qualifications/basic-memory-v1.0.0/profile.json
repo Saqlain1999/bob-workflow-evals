@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "backend": "Basic Memory",
+  "qualification_id": "basic-memory-v1.0.0-source-gate",
+  "decision": "defer_pending_project_confinement",
+  "evidence_level": "source_reviewed_blocked",
+  "source": {
+    "repository": "https://github.com/basicmachines-co/basic-memory",
+    "tag": "v1.0.0",
+    "commit": "c9bd187b83baba549d5cd16bacc180f8023d51c8",
+    "commit_date_utc": "2026-10-29T23:44:46Z",
+    "release_published_utc": "2026-10-29T23:45:31Z",
+    "license": "AGPL-3.0-or-later",
+    "python_requires": ">=3.12",
+    "asset": {
+      "name": "basic_memory-1.0.0-py3-none-any.whl",
+      "size_bytes": 1883480,
+      "sha256": "a2d2c1589616c9599aec9edd6597d508028c5af88632312fc0990dcaccf02867"
+    },
+    "reviewed_paths": [
+      "README.md",
+      "SECURITY.md",
+      "server.json",
+      "pyproject.toml",
+      "src/basic_memory/config_models.py",
+      "src/basic_memory/cli/commands/mcp.py",
+      "src/basic_memory/mcp/tools/project_management.py",
+      "src/basic_memory/services/context_service.py",
+      "src/basic_memory/api/v2/utils.py",
+      "src/basic_memory/man/man3/bm-delete(3).md",
+      "src/basic_memory/man/man3/bm-edit(3).md",
+      "src/basic_memory/man/man3/bm-project-delete(3).md",
+      "tests/services/test_context_service.py"
+    ],
+    "source_notes": [
+      "the MCP registry example resolves an unpinned basic-memory package, so it is not the reproducible trial command",
+      "SECURITY.md still lists 0.x.x as supported even though v1.0.0 is released",
+      "v1.0.0 predates commit 3e8a519fa0ff406d98321af160080b74d8230c51, which fixes bm_project listing ignoring explicit local routing when cloud credentials exist",
+      "v1.0.0 deliberately leaves the connected-entity project filter empty and hydrates relation targets with include_cross_project=true, so build_context can expose another project's title, path, external ID and graph links through an explicit relation",
+      "commit 506305b856967da1799f530502b6d9b7e6bd9610 on 2026-11-22 adds optional context confinement after a cloud security audit, but keeps cross-project traversal enabled by default for local use and is not part of v1.0.0",
+      "current main differs from the reviewed release and is not carried into this gate"
+    ]
+  },
+  "project_separation_gate": {
+    "state": "blocked_by_source",
+    "finding_commit": "506305b856967da1799f530502b6d9b7e6bd9610",
+    "finding_event_utc": "2026-11-22T05:45:59Z",
+    "user_problem": "A project-scoped memory client must not reveal another project's metadata or content through graph traversal.",
+    "pinned_source_evidence": [
+      "ContextService has no project-confinement option in v1.0.0",
+      "find_related leaves connected_entity_project_filter empty for explicit cross-project relations",
+      "to_graph_context hydrates related entities with include_cross_project=true",
+      "the pinned source test expects a project-alpha relation to expand into project-beta and its child relation"
+    ],
+    "bounded_first_slice": "Use two constructed projects, create an explicit relation from project-alpha with an alpha-authored label that differs from the uniquely named project-beta target and its child link, and request context from project-alpha.",
+    "acceptance_criteria": [
+      "no backend-hydrated project-beta title, path, external ID, child graph link or body is returned to project-alpha; the alpha-authored relation label is not treated as target disclosure",
+      "the confinement control is present in the exact reviewed artifact rather than inferred from unreleased main",
+      "the control applies to the local STDIO MCP path used by the Bob trial",
+      "the adapter or backend fails closed when project confinement cannot be established"
+    ],
+    "acceptable_resolution": [
+      "pin a stable release that exposes project confinement for the local STDIO MCP path",
+      "review a project-confined wrapper that blocks build_context and filters every cross-project metadata and content path"
+    ]
+  },
+  "bob_trial_contract": {
+    "configuration_scope": "project_only",
+    "configuration_path": ".bob/mcp.json",
+    "basic_memory_config_path": ".basic-memory-state/config.json",
+    "transport": "stdio",
+    "server_name": "basic-memory-v1",
+    "command_must_be_absolute": true,
+    "wheel_must_be_absolute": true,
+    "arguments": ["--from", "<reviewed-wheel>", "basic-memory", "mcp", "--project", "project-alpha"],
+    "working_directory": "<project>",
+    "disabled_by_default": true,
+    "always_allow": [],
+    "first_tool_call": {"tool": "bm_project", "arguments": {"command": "list"}},
+    "environment": {
+      "BASIC_MEMORY_CONFIG_DIR": "<project>/.basic-memory-state",
+      "BASIC_MEMORY_FORCE_LOCAL": "true",
+      "BASIC_MEMORY_CLOUD_MODE": "false",
+      "BASIC_MEMORY_NO_PROMOS": "1",
+      "BASIC_MEMORY_LOGFIRE_ENABLED": "false",
+      "BASIC_MEMORY_LOGFIRE_SEND_TO_LOGFIRE": "false",
+      "BASIC_MEMORY_ENABLE_PROJECT_DELETE": "false",
+      "BASIC_MEMORY_AUTO_UPDATE": "false",
+      "BASIC_MEMORY_DEFAULT_SEARCH_TYPE": "text",
+      "FASTEMBED_CACHE_PATH": "<project>/.basic-memory-state/fastembed-cache"
+    },
+    "prerequisites": [
+      "disposable project with constructed public data",
+      "Python 3.12 or later and an absolute reviewed uvx executable",
+      "wheel digest independently verified before execution",
+      "isolated config reviewed before it is written",
+      "disposable process has no Basic Memory cloud credentials or persisted login state",
+      "network activity is observed before accepting the project inventory",
+      "a reviewed project-confinement layer satisfies project_separation_gate before Basic Memory starts",
+      "project folder explicitly trusted when Bob folder trust is enabled",
+      "project MCP entry reviewed and enabled manually",
+      "individual tool approvals retained"
+    ],
+    "prohibited_first_trial": [
+      "global Bob or Basic Memory configuration mutation",
+      "unversioned package resolution",
+      "cloud mode or cloud sync",
+      "direct v1.0.0 bm_context or build_context use without a reviewed project-confinement layer",
+      "Basic Memory cloud credentials or persisted login state",
+      "HTTP or SSE transport",
+      "automatic tool approval",
+      "passive transcript or history capture",
+      "private project content",
+      "credentials or paid model calls"
+    ]
+  },
+  "runtime_side_effects_to_observe": [
+    "wheel dependency resolution and any network access",
+    "cloud discovery or network activity during the first bm_project list",
+    "project-local config, SQLite database, log and vector-index creation",
+    "FastEmbed model or cache downloads even when text search is selected",
+    "project watcher and indexing lifecycle",
+    "cross-project title, path, external-ID, graph-link and body visibility through an explicit relation",
+    "checksum conflict behavior across two writers",
+    "interrupted atomic write and index recovery",
+    "delete convergence across Markdown, history and indexes",
+    "complete stop and removal behavior"
+  ],
+  "contract_mapping": [
+    {"behavior": "fresh-session recall", "candidate_mechanism": "explicit bm_read and bm_search in the named project; bm_context is prohibited until project confinement is reviewed", "status": "runtime_evidence_required_after_confinement"},
+    {"behavior": "project separation", "candidate_mechanism": "v1.0.0 project arguments do not confine build_context: explicit relations traverse into another project and response hydration can expose its metadata; require a reviewed confined release or wrapper", "status": "blocked_by_source"},
+    {"behavior": "explicit sanitized promotion", "candidate_mechanism": "adapter-owned bm_write into a separately configured shared-lessons project", "status": "adapter_required"},
+    {"behavior": "supersession with history", "candidate_mechanism": "adapter-owned current marker plus immutable prior decision notes", "status": "adapter_required"},
+    {"behavior": "source freshness", "candidate_mechanism": "adapter-owned source hash stored with the accepted evidence", "status": "adapter_required"},
+    {"behavior": "revision conflict refusal", "candidate_mechanism": "bm_edit and bm_delete expected_checksum reject stale content with REVISION_CONFLICT", "status": "runtime_evidence_required"},
+    {"behavior": "interrupted-write recovery", "candidate_mechanism": "private atomic staging and SQLite/index recovery paths", "status": "runtime_evidence_required"},
+    {"behavior": "hostile content remains untrusted data", "candidate_mechanism": "notes are returned as data; adapter and Bob instructions must keep bodies inert", "status": "runtime_evidence_required"},
+    {"behavior": "direct and indexed deletion", "candidate_mechanism": "bm_delete removes notes with checksum guards; index and backup consequences require observation", "status": "runtime_evidence_required"},
+    {"behavior": "honest backend-outage degradation", "candidate_mechanism": "adapter must return unavailable and point to repository evidence", "status": "adapter_required"}
+  ],
+  "stop_conditions": [
+    "source pin or wheel digest differs",
+    "runtime resolves an unreviewed Basic Memory release",
+    "Basic Memory cloud credentials or persisted login state are present",
+    "bm_project attempts cloud discovery or any network request",
+    "project confinement is absent from the exact artifact or local STDIO MCP path",
+    "project-alpha context returns any backend-hydrated project-beta title, path, external ID, child graph link or body",
+    "server requires global Bob or Basic Memory configuration",
+    "server uses cloud routing or exposes a non-STDIO transport",
+    "another project's notes become visible",
+    "stored instruction-like content changes control flow",
+    "a stale checksum is accepted",
+    "backend failure is reported as successful recall",
+    "direct and indexed deletion cannot be demonstrated",
+    "the trial would require private data, credentials or a paid model call"
+  ],
+  "unverified": [
+    "Basic Memory installation or execution",
+    "wheel dependency closure and supply-chain behavior",
+    "MCP initialization and protocol compatibility",
+    "live Bob discovery, activation, approval and tool use",
+    "all bob-project-memory-v1 runtime behaviors",
+    "project-confined context traversal for the local STDIO MCP path",
+    "durable multi-process concurrency and interruption recovery",
+    "backup erasure, privacy compliance, AGPL deployment obligations and production readiness"
+  ]
+}

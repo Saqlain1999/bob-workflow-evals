@@ -14,3 +14,4 @@ a binary, or call a model.
 | Record | Decision | Evidence boundary |
 | --- | --- | --- |
 | [`engram-v3.7.2`](engram-v3.7.2/README.md) | Adapt only after runtime qualification | Current stable source-reviewed profile and non-mutating Bob project-config preview; supersedes the unsupported Alpha v0.11.0 gate; no Engram or Bob execution |
+| [`basic-memory-v1.0.0`](basic-memory-v1.0.0/README.md) | Defer pending project confinement | Exact source shows explicit-relation context traversal can expose another project's metadata; preview remains non-mutating and no Basic Memory or Bob execution occurred |
