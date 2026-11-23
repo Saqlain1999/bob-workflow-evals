@@ -181,7 +181,10 @@ wheel digest. Its preview isolates configuration under the disposable project,
 pins the wheel by absolute path, disables cloud routing, telemetry export,
 updates, project deletion and tool auto-approval, and still performs no write,
 download, installation or execution. It records checksum conflict support as a
-runtime candidate, not a qualified result.
+runtime candidate, not a qualified result. Exact v1.0.0 source also expands
+explicit graph relations across projects and hydrates target metadata, so the
+gate now defers execution until a stable confined release or reviewed
+project-confined wrapper passes the named A-to-B disclosure fixture.
 
 ## What the helper reports
 

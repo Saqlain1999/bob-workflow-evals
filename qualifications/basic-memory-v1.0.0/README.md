@@ -35,13 +35,35 @@ v1.0.0 is local-only. Its first trial must start in a disposable process with no
 Basic Memory cloud credentials or persisted login, observe network activity
 before accepting the project list, and stop on any cloud discovery or request.
 
+More importantly, exact v1.0.0 source blocks the project-separation claim. Its
+`ContextService` has no confinement option, leaves the connected-entity project
+filter empty for explicit relations, and hydrates relation targets with
+`include_cross_project=true`. The pinned upstream test deliberately expects a
+project-1 relation to expand into project 2 and a child relation. Upstream commit
+[`506305b856967da1799f530502b6d9b7e6bd9610`](https://github.com/basicmachines-co/basic-memory/commit/506305b856967da1799f530502b6d9b7e6bd9610)
+(22 November 2026) added optional confinement after a cloud security audit, but
+kept traversal enabled by default for local use. That unreleased change is not
+evidence for v1.0.0 and does not expose a reviewed confinement control for this
+local STDIO trial.
+
 ## Decision
 
-**Qualify after runtime evidence; do not adopt yet.** Exact v1.0.0 source has
+**Defer pending project confinement; do not execute or adopt v1.0.0 yet.** Exact
+v1.0.0 source has
 useful controls: named project routing, project-root validation, local STDIO,
 checksum-guarded edits and deletes, and project deletion disabled by default.
-Those are stronger source-level candidates for project separation and stale
-writer refusal than an unguarded memory store.
+Those remain useful candidates for stale-writer refusal and lifecycle testing,
+but project arguments and roots do not confine graph-context traversal.
+
+The bounded next slice is either a stable reviewed release that exposes
+project confinement on the local STDIO MCP path, or a reviewed wrapper that
+blocks `build_context` and filters every cross-project metadata/content path.
+Its acceptance fixture must create an explicit project-alpha to project-beta
+relation whose alpha-authored label differs from the uniquely named beta target,
+plus a beta child link. A context request from alpha may retain that author-owned
+label, but must return no backend-hydrated beta title, path, external ID, child
+graph link, or body. Missing confinement or any disclosure is a stop, not a
+partial qualification.
 
 They do not establish the contract:
 
@@ -49,7 +71,8 @@ They do not establish the contract:
   resolved or observed;
 - supersession history, source freshness, sanitized promotion, and outage
   fallback still need a bounded adapter;
-- project isolation, atomic recovery, hostile-content handling, checksum races,
+- project isolation is blocked by source; atomic recovery, hostile-content
+  handling, checksum races,
   and direct/indexed deletion still need disposable runtime evidence;
 - local file deletion is irreversible, cloud deletion has different backup
   semantics, and the first trial deliberately excludes cloud mode;
@@ -74,15 +97,18 @@ auto-update, project deletion, and all Bob auto-approval, and starts disabled.
 It never creates a directory, writes either config, downloads or imports the
 wheel, starts `uvx`, or sends the tool request.
 
-The preview chooses text search for the first contract trial, but that does not
-prove v1.0.0 avoids model or dependency downloads. Before execution, verify the
+The preview remains useful for configuration review, but it is not permission
+to start v1.0.0 while the project-separation gate is blocked. After a confined
+artifact or wrapper is separately reviewed, the text-search preview still does
+not prove v1.0.0 avoids model or dependency downloads. Before execution, verify the
 wheel digest independently, review and write both rendered files only in the
 disposable project, remove Basic Memory cloud credentials and persisted login
 state from the disposable process, explicitly trust that folder if Bob folder
 trust is active, enable the one server manually, retain individual tool
 approvals, and observe network activity before accepting `bm_project` output.
 Stop if the release changes, cloud discovery or a network request occurs, a
-global or cloud setting is required, another project's notes are visible, a
+global or cloud setting is required, confinement is absent, any backend-hydrated
+other-project title/path/external ID/child graph link/body is visible, a
 stale checksum succeeds, or the repository-evidence fallback is ambiguous.
 
 Removal for this preview is trivial because it writes nothing. A future trial

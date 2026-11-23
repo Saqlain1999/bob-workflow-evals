@@ -56,7 +56,40 @@ class BasicMemoryQualificationTests(unittest.TestCase):
         conflict = mapping["revision conflict refusal"]
         self.assertIn("expected_checksum", conflict["candidate_mechanism"])
         self.assertEqual(conflict["status"], "runtime_evidence_required")
-        self.assertEqual(self.profile["decision"], "qualify_after_runtime_evidence")
+        self.assertEqual(self.profile["decision"], "defer_pending_project_confinement")
+
+    def test_project_separation_is_blocked_by_exact_source(self) -> None:
+        source = self.profile["source"]
+        reviewed = source["reviewed_paths"]
+        for expected in (
+            "src/basic_memory/services/context_service.py",
+            "src/basic_memory/api/v2/utils.py",
+            "tests/services/test_context_service.py",
+        ):
+            self.assertIn(expected, reviewed)
+
+        notes = "\n".join(source["source_notes"])
+        self.assertIn("connected-entity project filter empty", notes)
+        self.assertIn("include_cross_project=true", notes)
+        self.assertIn("506305b856967da1799f530502b6d9b7e6bd9610", notes)
+        self.assertIn("enabled by default for local use", notes)
+
+        mapping = {item["behavior"]: item for item in self.profile["contract_mapping"]}
+        separation = mapping["project separation"]
+        self.assertEqual(separation["status"], "blocked_by_source")
+        self.assertIn("explicit relations traverse", separation["candidate_mechanism"])
+
+        gate = self.profile["project_separation_gate"]
+        self.assertEqual(gate["state"], "blocked_by_source")
+        self.assertEqual(gate["finding_commit"], "506305b856967da1799f530502b6d9b7e6bd9610")
+        self.assertEqual(gate["finding_event_utc"], "2026-11-22T05:45:59Z")
+        acceptance = "\n".join(gate["acceptance_criteria"])
+        for expected in ("title", "path", "external ID", "child graph link", "body", "local STDIO MCP"):
+            self.assertIn(expected, acceptance)
+        self.assertIn("alpha-authored relation label", acceptance)
+        resolutions = "\n".join(gate["acceptable_resolution"])
+        self.assertIn("stable release", resolutions)
+        self.assertIn("project-confined wrapper", resolutions)
 
     def test_preview_is_project_local_disabled_and_has_no_auto_approval(self) -> None:
         result = self.invoke(self.project, self.uvx, self.wheel)
@@ -130,6 +163,8 @@ class BasicMemoryQualificationTests(unittest.TestCase):
         self.assertIn("Python 3.12", prerequisites)
         self.assertIn("digest independently verified", prerequisites)
         self.assertIn("project folder explicitly trusted", prerequisites)
+        self.assertIn("project-confinement layer", prerequisites)
+        self.assertIn("build_context", prohibited)
 
     def test_dependency_and_deletion_side_effects_are_not_hidden(self) -> None:
         effects = "\n".join(self.profile["runtime_side_effects_to_observe"])
@@ -146,6 +181,8 @@ class BasicMemoryQualificationTests(unittest.TestCase):
         stop_conditions = "\n".join(self.profile["stop_conditions"])
         self.assertIn("cloud credentials", stop_conditions)
         self.assertIn("cloud discovery or any network request", stop_conditions)
+        self.assertIn("project confinement is absent", stop_conditions)
+        self.assertIn("project-beta title, path, external ID, child graph link or body", stop_conditions)
 
 
 if __name__ == "__main__":
