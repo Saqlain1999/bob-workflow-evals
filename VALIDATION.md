@@ -1,6 +1,6 @@
 # Local software validation
 
-## Backend-neutral memory runtime evidence protocol — updated 23 November 2026 (UTC)
+## Backend-neutral memory runtime evidence protocol — updated 24 November 2026 (UTC)
 
 The protocol binds a later authorized project-memory trial to its exact
 reviewed profile and digest, the ten `bob-project-memory-v1` behaviours,
@@ -17,6 +17,7 @@ Observed on Linux with Python 3.12.14:
 | --- | --- |
 | ResourceWarning-fatal combined suite | 84/84 passed |
 | Runtime-protocol focused suite | 19/19 passed |
+| Git-less exact-content archive | 84/84 passed |
 | Python 3.10 grammar | 20 files parsed |
 | JSON syntax | 7 files parsed |
 | Local Markdown links | 33 links across 28 files; no missing targets |
@@ -25,15 +26,16 @@ Observed on Linux with Python 3.12.14:
 | JSON ambiguity control | Conflicting top-level and nested duplicate object names rejected with source bytes unchanged |
 | Schema ambiguity control | Unknown top-level, claim, and per-behavior fields rejected instead of remaining unchecked evidence |
 | Unexecuted-state control | `not_run` rejects run ID, host identity, client version, explicit trust, verified assets, observations and cleanup claims |
+| Executed identity/time control | The pre-fix validator accepted a constructed qualified result without an observation time or distinct host ID; schema 4 requires both, and missing, malformed, offset and impossible timestamps fail closed |
 | Cleanup-state control | `cleanup.attempted=false` rejects claimed process, project-file, or machine-state cleanup outcomes |
-| Manual-approval control | Schema 3 rejects any enabled lifecycle hook, including permission-resolution hooks that could approve without user interaction |
+| Manual-approval control | Schema 4 rejects any enabled lifecycle hook, including permission-resolution hooks that could approve without user interaction |
 | Source-gate execution control | Basic Memory v1.0.0 remains valid only as an unchanged `not_run` binding; every executed decision is rejected while its exact profile records unconfined cross-project traversal |
 
 The controls cover exact profile/contract binding, digest and authorization
 failures, forbidden global/automatic settings, missing/duplicate/reordered
 behaviours, incomplete evidence, cleanup and side-effect requirements, blocked
-decisions, contradictory unattempted-cleanup outcomes, run and executed-host
-identity, client-mode matching, live Bob
+decisions, contradictory unattempted-cleanup outcomes, run, observation-time,
+and executed-host identity, client-mode matching, live Bob
 version/trust/observation evidence for blocked and incomplete as well as
 qualified trials, non-interactive Bob rejection, production-readiness rejection,
 record preservation, and rejection of the superseded Engram profile. Hosted

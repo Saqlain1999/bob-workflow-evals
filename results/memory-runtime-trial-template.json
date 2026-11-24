@@ -1,7 +1,8 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "protocol_id": "bob-project-memory-runtime-trial-v1",
   "run_id": null,
+  "observed_at_utc": null,
   "backend_profile": "qualifications/engram-v3.7.2/profile.json",
   "backend_qualification_id": "engram-v3.7.2-source-gate",
   "source": {
@@ -14,6 +15,7 @@
     "authorization_reference": null
   },
   "environment": {
+    "host_id": null,
     "operating_system": null,
     "architecture": null,
     "client": "not_run",

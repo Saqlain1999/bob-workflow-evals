@@ -61,8 +61,10 @@ and cleanup observations. Keep the schema exact: missing, misspelled, and
 unrecognized fields must fail rather than becoming unchecked evidence.
 Never turn a structurally valid `not_run`, `incomplete`, or `blocked` record into
 a qualification claim. A runtime record does not establish production
-readiness. Keep `not_run` free of run, host, client-version, trust, side-effect,
-cleanup, and behavior observations. Every executed IBM Bob record, even when
+readiness. Keep `not_run` free of run, observation-time, host, client-version,
+trust, side-effect, cleanup, and behavior observations. Every executed record
+must name a distinct non-secret host identifier and a valid second-precision
+RFC 3339 UTC observation time. Every executed IBM Bob record, even when
 blocked or incomplete, must name an interactive client mode and version, record
 explicit workspace trust, and set the live-observation marker. Non-interactive
 Bob Shell is outside this manual-approval protocol. Global, workspace, plugin,

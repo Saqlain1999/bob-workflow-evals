@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 import json
 from pathlib import Path
+import re
 import sys
 from typing import Any
 
@@ -66,12 +68,26 @@ def nonempty_text(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
+UTC_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+
+
+def valid_utc_timestamp(value: Any) -> bool:
+    """Accept an actual second-precision RFC 3339 UTC timestamp."""
+    if not isinstance(value, str) or UTC_TIMESTAMP.fullmatch(value) is None:
+        return False
+    try:
+        datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        return False
+    return True
+
+
 def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
     protocol = load_object(root / PROTOCOL_PATH.relative_to(ROOT), "runtime protocol")
     contract = load_object(root / protocol["contract_path"], "project-memory contract")
 
     require_exact_keys(record, "record", {
-        "schema_version", "protocol_id", "run_id", "backend_profile",
+        "schema_version", "protocol_id", "run_id", "observed_at_utc", "backend_profile",
         "backend_qualification_id", "source", "authorization", "environment",
         "safeguards", "side_effects", "behaviors", "cleanup", "decision",
         "decision_rationale", "claims", "limitations",
@@ -124,7 +140,7 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
 
     environment = require_object(record, "environment")
     require_exact_keys(environment, "environment", {
-        "operating_system", "architecture", "client", "client_mode",
+        "host_id", "operating_system", "architecture", "client", "client_mode",
         "client_version", "workspace_trust", "transport", "project_scope",
     })
     client = environment.get("client")
@@ -218,7 +234,9 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
             raise RecordError("not_run requires no authorization, client, or observed behavior")
         if record.get("run_id") is not None:
             raise RecordError("not_run cannot claim a run_id")
-        for key in ("operating_system", "architecture", "client_version"):
+        if record.get("observed_at_utc") is not None:
+            raise RecordError("not_run cannot claim observed_at_utc")
+        for key in ("host_id", "operating_system", "architecture", "client_version"):
             if environment.get(key) is not None:
                 raise RecordError(f"not_run cannot claim environment.{key}")
         if environment.get("workspace_trust") != "not_assessed":
@@ -236,9 +254,14 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
             raise RecordError("an executed decision requires exact asset-digest verification")
         if not nonempty_text(record.get("run_id")):
             raise RecordError("an executed decision requires a non-empty run_id")
+        if not valid_utc_timestamp(record.get("observed_at_utc")):
+            raise RecordError(
+                "an executed decision requires observed_at_utc as a valid "
+                "second-precision RFC 3339 UTC timestamp"
+            )
         if client == "not_run":
             raise RecordError("an executed decision requires an observed client")
-        for key in ("operating_system", "architecture"):
+        for key in ("host_id", "operating_system", "architecture"):
             if not nonempty_text(environment.get(key)):
                 raise RecordError(f"an executed decision requires environment.{key}")
 

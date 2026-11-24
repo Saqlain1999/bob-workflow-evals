@@ -42,12 +42,14 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
     def executed(self, decision: str = "qualified", client: str = "direct_mcp") -> dict:
         record = copy.deepcopy(self.record)
         record["run_id"] = "constructed-runtime-control"
+        record["observed_at_utc"] = "2026-11-24T08:00:00Z"
         record["source"]["asset_digest_verified"] = True
         record["authorization"] = {
             "third_party_execution_authorized": True,
             "authorization_reference": "reviewed authorization record",
         }
         record["environment"].update({
+            "host_id": "constructed-disposable-host",
             "operating_system": "constructed-os",
             "architecture": "constructed-arch",
             "client": client,
@@ -88,6 +90,14 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
         mutations = (
             ("run_id", lambda record: record.update({"run_id": "unexecuted-run"})),
             (
+                "observed_at_utc",
+                lambda record: record.update({"observed_at_utc": "2026-11-24T08:00:00Z"}),
+            ),
+            (
+                "host_id",
+                lambda record: record["environment"].update({"host_id": "claimed-host"}),
+            ),
+            (
                 "operating_system",
                 lambda record: record["environment"].update({"operating_system": "claimed-os"}),
             ),
@@ -120,6 +130,8 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
             "qualifications/engram-v3.7.2/profile.json",
             "qualifications/basic-memory-v1.0.0/profile.json",
         ])
+        self.assertEqual(protocol["schema_version"], 4)
+        self.assertEqual(self.record["schema_version"], 4)
         contract = json.loads((ROOT / protocol["contract_path"]).read_text(encoding="utf-8"))
         self.assertEqual([item["behavior"] for item in self.record["behaviors"]], contract["required_behaviors"])
 
@@ -210,13 +222,20 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("explicit third-party execution authorization", result.stderr)
 
-    def test_executed_record_requires_host_and_matching_client_mode(self) -> None:
+    def test_executed_record_requires_time_host_and_matching_client_mode(self) -> None:
         record = self.executed()
         record["run_id"] = None
         result = self.write_and_validate(record)
         self.assertEqual(result.returncode, 2)
         self.assertIn("non-empty run_id", result.stderr)
-        for key in ("operating_system", "architecture"):
+        for value in (None, "not-a-timeZ", "2026-11-24T08:00:00+00:00", "2026-02-30T08:00:00Z"):
+            with self.subTest(observed_at_utc=value):
+                record = self.executed()
+                record["observed_at_utc"] = value
+                result = self.write_and_validate(record)
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("observed_at_utc", result.stderr)
+        for key in ("host_id", "operating_system", "architecture"):
             with self.subTest(key=key):
                 record = self.executed()
                 record["environment"][key] = None

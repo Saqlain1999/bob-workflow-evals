@@ -18,8 +18,9 @@ execution unauthorized and every behaviour `not_run`. The validator reads JSON
 only: it does not download an asset, write Bob settings, start a process, call a
 model, or contact a service.
 
-A `not_run` record must remain wholly unobserved: it cannot name a run ID, host
-operating system or architecture, client version, explicit workspace-trust
+A `not_run` record must remain wholly unobserved: it cannot name a run ID,
+observation time, host identifier, host operating system or architecture,
+client version, explicit workspace-trust
 decision, verified asset, side effect, cleanup action, or behavior evidence.
 Record those facts only after separately authorized execution actually begins.
 
@@ -44,7 +45,11 @@ not as execution permission.
    [their tools are pre-approved](https://bob.ibm.com/docs/shell/getting-started/start-bobshell-non-interactive),
    which conflicts with the manual-approval safeguard.
 5. Copy [`memory-runtime-trial-template.json`](../../results/memory-runtime-trial-template.json)
-   outside the candidate workspace and fill it from observed evidence.
+   outside the candidate workspace and fill it from observed evidence. Use a
+   distinct non-secret, pseudonymous host identifier and the actual observation
+   time as a second-precision RFC 3339 UTC value such as
+   `2026-11-24T08:00:00Z`; do not put a personal machine name or secret in the
+   host field.
 
 Record process, file, network and model-download effects even when the observed
 answer is “none”; include how each observation was made. Record MCP server
@@ -78,9 +83,12 @@ trial—requires an observed interactive client mode and version, explicit
 workspace trust, and `live_bob_observed=true`. This records where the evidence
 came from; it does not turn a blocked or incomplete result into backend
 qualification. Direct MCP records must instead mark workspace trust as not
-applicable. Every executed record also names its operating system and
-architecture. Backup erasure, privacy/licence compliance, durable multi-process
-safety and production readiness remain separate gates.
+applicable. Every executed record also names its operating system,
+architecture, a distinct host identifier, and a valid UTC observation time.
+Those fields bind evidence to an event and environment; the validator does not
+attest that their contents are truthful. Backup erasure, privacy/licence
+compliance, durable multi-process safety and production readiness remain
+separate gates.
 
 Cleanup evidence must also remain internally consistent for blocked and
 incomplete trials. A record with `cleanup.attempted=false` cannot claim that

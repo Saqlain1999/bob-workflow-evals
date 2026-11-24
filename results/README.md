@@ -35,9 +35,11 @@ reviewed. Superseded profiles are rejected. Validate a completed copy outside
 the candidate workspace; the validator confirms claim consistency, rejects
 duplicate JSON object names, and rejects fields outside the reviewed schema
 rather than ignoring typoed or extra claims. A `not_run` record cannot carry
-run, host, client-version, trust,
-side-effect, cleanup, or behavior observations. The validator does not run or
-qualify a backend. Schema 3 also requires lifecycle hooks to be disabled so a
-permission hook cannot substitute for a manual approval. Cleanup outcomes are
+run, observation-time, host, client-version, trust, side-effect, cleanup, or
+behavior observations. Every executed record must name a distinct non-secret
+host identifier and a valid second-precision RFC 3339 UTC observation time. The
+validator does not run or qualify a backend. The current schema also requires
+lifecycle hooks to be disabled so a permission hook cannot substitute for a
+manual approval. Cleanup outcomes are
 valid only when `cleanup.attempted=true`; an unattempted cleanup cannot claim
 that processes stopped, files were removed, or machine state was cleaned.
