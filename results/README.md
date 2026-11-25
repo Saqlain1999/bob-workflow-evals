@@ -38,7 +38,11 @@ rather than ignoring typoed or extra claims. A `not_run` record cannot carry
 run, observation-time, host, client-version, trust, side-effect, cleanup, or
 behavior observations. Every executed record must name a distinct non-secret
 host identifier and a valid second-precision RFC 3339 UTC observation time. The
-validator does not run or qualify a backend. The current schema also requires
+source section must also record the lowercase SHA-256 actually observed from
+the artifact and a non-secret evidence reference for that verification; the
+observed digest must equal the reviewed profile digest. A Boolean verification
+claim alone is rejected. The validator does not run or qualify a backend. The
+current schema also requires
 lifecycle hooks to be disabled so a permission hook cannot substitute for a
 manual approval. Cleanup outcomes are
 valid only when `cleanup.attempted=true`; an unattempted cleanup cannot claim

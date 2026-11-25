@@ -59,6 +59,10 @@ profile and exact digest, retain constructed public data and manual approvals,
 and record process, file, network, model-download, MCP initialization-instruction
 and cleanup observations. Keep the schema exact: missing, misspelled, and
 unrecognized fields must fail rather than becoming unchecked evidence.
+For an executed result, record the SHA-256 actually observed from the artifact
+and a non-secret verification-evidence reference; a Boolean assertion alone is
+not downloaded-byte evidence. The observed digest must match the reviewed
+profile digest. Keep both observation fields null before execution.
 Never turn a structurally valid `not_run`, `incomplete`, or `blocked` record into
 a qualification claim. A runtime record does not establish production
 readiness. Keep `not_run` free of run, observation-time, host, client-version,

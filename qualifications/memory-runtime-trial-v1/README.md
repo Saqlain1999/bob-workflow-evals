@@ -34,6 +34,9 @@ not as execution permission.
 2. Obtain separate authorization to download or execute the reviewed third-party
    artifact.
 3. Independently verify the artifact digest against the selected profile.
+   Record the lowercase SHA-256 actually observed from the downloaded bytes and
+   a non-secret reference to the verification evidence. Do not copy the expected
+   value into the observed field without performing and retaining that check.
 4. Review the disabled project-only STDIO preview and retain manual tool
    approvals. Disable global, workspace, plugin, and policy lifecycle hooks;
    permission hooks can resolve approvals without user interaction, while other
@@ -86,7 +89,10 @@ qualification. Direct MCP records must instead mark workspace trust as not
 applicable. Every executed record also names its operating system,
 architecture, a distinct host identifier, and a valid UTC observation time.
 Those fields bind evidence to an event and environment; the validator does not
-attest that their contents are truthful. Backup erasure, privacy/licence
+attest that their contents are truthful. It likewise requires an observed
+artifact SHA-256 equal to the pinned digest plus a verification-evidence
+reference, but cannot attest that the referenced command or bytes are genuine.
+Backup erasure, privacy/licence
 compliance, durable multi-process safety and production readiness remain
 separate gates.
 

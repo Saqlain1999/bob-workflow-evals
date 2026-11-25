@@ -1,9 +1,10 @@
 # Local software validation
 
-## Backend-neutral memory runtime evidence protocol — updated 24 November 2026 (UTC)
+## Backend-neutral memory runtime evidence protocol — updated 25 November 2026 (UTC)
 
 The protocol binds a later authorized project-memory trial to its exact
-reviewed profile and digest, the ten `bob-project-memory-v1` behaviours,
+reviewed profile and digest, the SHA-256 actually observed from a later artifact,
+the ten `bob-project-memory-v1` behaviours,
 side-effect and MCP initialization-instruction observations, cleanup, and a
 fail-closed claim decision. The protocol was replayed onto the reconciled
 Basic Memory predecessor and rebound from the removed Engram Alpha v0.11.0
@@ -15,9 +16,9 @@ Observed on Linux with Python 3.12.14:
 
 | Check | Observed result |
 | --- | --- |
-| ResourceWarning-fatal combined suite | 84/84 passed |
-| Runtime-protocol focused suite | 19/19 passed |
-| Git-less exact-content archive | 84/84 passed |
+| ResourceWarning-fatal combined suite | 85/85 passed |
+| Runtime-protocol focused suite | 20/20 passed |
+| Git-less exact-content archive | 85/85 passed |
 | Python 3.10 grammar | 20 files parsed |
 | JSON syntax | 7 files parsed |
 | Local Markdown links | 33 links across 28 files; no missing targets |
@@ -27,11 +28,12 @@ Observed on Linux with Python 3.12.14:
 | Schema ambiguity control | Unknown top-level, claim, and per-behavior fields rejected instead of remaining unchecked evidence |
 | Unexecuted-state control | `not_run` rejects run ID, host identity, client version, explicit trust, verified assets, observations and cleanup claims |
 | Executed identity/time control | The pre-fix validator accepted a constructed qualified result without an observation time or distinct host ID; schema 4 requires both, and missing, malformed, offset and impossible timestamps fail closed |
+| Downloaded-byte identity control | The schema-4 validator accepted a constructed qualified result with only the expected profile digest and `asset_digest_verified=true`; schema 5 requires a lowercase observed SHA-256 equal to the pinned digest plus a non-secret verification-evidence reference |
 | Cleanup-state control | `cleanup.attempted=false` rejects claimed process, project-file, or machine-state cleanup outcomes |
-| Manual-approval control | Schema 4 rejects any enabled lifecycle hook, including permission-resolution hooks that could approve without user interaction |
+| Manual-approval control | Schema 5 rejects any enabled lifecycle hook, including permission-resolution hooks that could approve without user interaction |
 | Source-gate execution control | Basic Memory v1.0.0 remains valid only as an unchanged `not_run` binding; every executed decision is rejected while its exact profile records unconfined cross-project traversal |
 
-The controls cover exact profile/contract binding, digest and authorization
+The controls cover exact profile/contract binding, expected/observed digest and authorization
 failures, forbidden global/automatic settings, missing/duplicate/reordered
 behaviours, incomplete evidence, cleanup and side-effect requirements, blocked
 decisions, contradictory unattempted-cleanup outcomes, run, observation-time,
@@ -46,6 +48,10 @@ schema extensions require a reviewed version change instead of an ignored field.
 The lifecycle-hook safeguard covers global, workspace, plugin, and policy hooks;
 the protocol stops instead of assuming a hook-resolved action was manually
 approved.
+The digest fields distinguish the reviewed expected value from the value
+actually observed for a later artifact. Structural validation rejects a missing,
+malformed, mismatched, or unreferenced observation; it cannot attest that the
+recorded command, bytes, or evidence reference is truthful.
 The protocol also carries the profile's source block into runtime eligibility:
 execution authorization and a verified digest cannot make Basic Memory v1.0.0
 executable while its project-separation gate remains `blocked_by_source`.

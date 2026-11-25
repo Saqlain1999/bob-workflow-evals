@@ -43,6 +43,8 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
         record = copy.deepcopy(self.record)
         record["run_id"] = "constructed-runtime-control"
         record["observed_at_utc"] = "2026-11-24T08:00:00Z"
+        record["source"]["observed_asset_sha256"] = record["source"]["asset_sha256"]
+        record["source"]["asset_digest_evidence"] = "constructed sha256sum evidence reference"
         record["source"]["asset_digest_verified"] = True
         record["authorization"] = {
             "third_party_execution_authorized": True,
@@ -113,6 +115,14 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
                 "workspace_trust",
                 lambda record: record["environment"].update({"workspace_trust": "explicit_trust"}),
             ),
+            (
+                "observed_asset_sha256",
+                lambda record: record["source"].update({"observed_asset_sha256": "0" * 64}),
+            ),
+            (
+                "asset_digest_evidence",
+                lambda record: record["source"].update({"asset_digest_evidence": "unexecuted evidence"}),
+            ),
         )
         for label, mutate in mutations:
             with self.subTest(label=label):
@@ -130,8 +140,8 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
             "qualifications/engram-v3.7.2/profile.json",
             "qualifications/basic-memory-v1.0.0/profile.json",
         ])
-        self.assertEqual(protocol["schema_version"], 4)
-        self.assertEqual(self.record["schema_version"], 4)
+        self.assertEqual(protocol["schema_version"], 5)
+        self.assertEqual(self.record["schema_version"], 5)
         contract = json.loads((ROOT / protocol["contract_path"]).read_text(encoding="utf-8"))
         self.assertEqual([item["behavior"] for item in self.record["behaviors"]], contract["required_behaviors"])
 
@@ -221,6 +231,37 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
         result = self.write_and_validate(record)
         self.assertEqual(result.returncode, 2)
         self.assertIn("explicit third-party execution authorization", result.stderr)
+
+    def test_executed_record_requires_observed_matching_digest_and_evidence(self) -> None:
+        mutations = (
+            (
+                "missing observed digest",
+                lambda record: record["source"].update({"observed_asset_sha256": None}),
+                "observed_asset_sha256",
+            ),
+            (
+                "malformed observed digest",
+                lambda record: record["source"].update({"observed_asset_sha256": "A" * 64}),
+                "observed_asset_sha256",
+            ),
+            (
+                "mismatched observed digest",
+                lambda record: record["source"].update({"observed_asset_sha256": "0" * 64}),
+                "does not match",
+            ),
+            (
+                "missing evidence reference",
+                lambda record: record["source"].update({"asset_digest_evidence": None}),
+                "evidence reference",
+            ),
+        )
+        for label, mutate, message in mutations:
+            with self.subTest(label=label):
+                record = self.executed()
+                mutate(record)
+                result = self.write_and_validate(record)
+                self.assertEqual(result.returncode, 2)
+                self.assertIn(message, result.stderr)
 
     def test_executed_record_requires_time_host_and_matching_client_mode(self) -> None:
         record = self.executed()

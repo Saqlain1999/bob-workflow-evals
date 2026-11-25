@@ -69,6 +69,7 @@ def nonempty_text(value: Any) -> bool:
 
 
 UTC_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 
 def valid_utc_timestamp(value: Any) -> bool:
@@ -114,7 +115,8 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
 
     source = require_object(record, "source")
     require_exact_keys(source, "source", {
-        "commit", "asset_sha256", "asset_digest_verified",
+        "commit", "asset_sha256", "observed_asset_sha256",
+        "asset_digest_evidence", "asset_digest_verified",
     })
     profile_source = require_object(profile, "source")
     profile_asset = require_object(profile_source, "asset")
@@ -243,6 +245,10 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
             raise RecordError("not_run requires workspace trust to remain not_assessed")
         if source["asset_digest_verified"]:
             raise RecordError("not_run cannot claim verification of an unobserved trial asset")
+        if source["observed_asset_sha256"] is not None:
+            raise RecordError("not_run cannot claim an observed asset SHA-256")
+        if source["asset_digest_evidence"] is not None:
+            raise RecordError("not_run cannot claim asset-digest evidence")
         if any(side_effects[key] for key in side_effect_keys):
             raise RecordError("not_run cannot contain runtime side-effect observations")
         if cleanup["attempted"] or any(cleanup[key] for key in cleanup_flags[1:]):
@@ -252,6 +258,15 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
             raise RecordError("an executed decision requires explicit third-party execution authorization")
         if not source["asset_digest_verified"]:
             raise RecordError("an executed decision requires exact asset-digest verification")
+        observed_asset_sha256 = source["observed_asset_sha256"]
+        if not isinstance(observed_asset_sha256, str) or SHA256.fullmatch(observed_asset_sha256) is None:
+            raise RecordError(
+                "an executed decision requires observed_asset_sha256 as a lowercase 64-character SHA-256"
+            )
+        if observed_asset_sha256 != source["asset_sha256"]:
+            raise RecordError("observed asset SHA-256 does not match the pinned profile digest")
+        if not nonempty_text(source["asset_digest_evidence"]):
+            raise RecordError("an executed decision requires an asset-digest evidence reference")
         if not nonempty_text(record.get("run_id")):
             raise RecordError("an executed decision requires a non-empty run_id")
         if not valid_utc_timestamp(record.get("observed_at_utc")):
