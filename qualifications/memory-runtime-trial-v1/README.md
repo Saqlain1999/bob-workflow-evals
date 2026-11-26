@@ -20,7 +20,7 @@ model, or contact a service.
 
 A `not_run` record must remain wholly unobserved: it cannot name a run ID,
 observation time, host identifier, host operating system or architecture,
-client version, explicit workspace-trust
+client name or version, explicit workspace-trust
 decision, verified asset, side effect, cleanup action, or behavior evidence.
 Record those facts only after separately authorized execution actually begins.
 
@@ -41,9 +41,11 @@ not as execution permission.
    approvals. Disable global, workspace, plugin, and policy lifecycle hooks;
    permission hooks can resolve approvals without user interaction, while other
    hooks can inject context, change inputs, execute commands, or call HTTPS
-   endpoints. Stop if an enforced hook cannot be disabled. If Bob is used, use
-   an interactive IDE or Shell session and record the client mode, version, and
-   explicit folder-trust decision. Bob
+   endpoints. Stop if an enforced hook cannot be disabled. Record the exact
+   observed client implementation name and version for every executed trial;
+   `direct_mcp` alone is only a category. If Bob is used, use an interactive IDE
+   or Shell session and record the client mode and explicit folder-trust
+   decision. Bob
    Shell non-interactive sessions are outside this first protocol because
    [their tools are pre-approved](https://bob.ibm.com/docs/shell/getting-started/start-bobshell-non-interactive),
    which conflicts with the manual-approval safeguard.
@@ -87,7 +89,9 @@ workspace trust, and `live_bob_observed=true`. This records where the evidence
 came from; it does not turn a blocked or incomplete result into backend
 qualification. Direct MCP records must instead mark workspace trust as not
 applicable. Every executed record also names its operating system,
-architecture, a distinct host identifier, and a valid UTC observation time.
+architecture, a distinct host identifier, a valid UTC observation time, and
+the observed client implementation name and version. A generic `direct_mcp`
+category cannot stand in for the implementation identity.
 Those fields bind evidence to an event and environment; the validator does not
 attest that their contents are truthful. It likewise requires an observed
 artifact SHA-256 equal to the pinned digest plus a verification-evidence

@@ -1,6 +1,6 @@
 # Local software validation
 
-## Backend-neutral memory runtime evidence protocol — updated 25 November 2026 (UTC)
+## Backend-neutral memory runtime evidence protocol — updated 26 November 2026 (UTC)
 
 The protocol binds a later authorized project-memory trial to its exact
 reviewed profile and digest, the SHA-256 actually observed from a later artifact,
@@ -16,9 +16,9 @@ Observed on Linux with Python 3.12.14:
 
 | Check | Observed result |
 | --- | --- |
-| ResourceWarning-fatal combined suite | 85/85 passed |
-| Runtime-protocol focused suite | 20/20 passed |
-| Git-less exact-content archive | 85/85 passed |
+| ResourceWarning-fatal combined suite | 86/86 passed |
+| Runtime-protocol focused suite | 21/21 passed |
+| Git-less exact-content archive | 86/86 passed |
 | Python 3.10 grammar | 20 files parsed |
 | JSON syntax | 7 files parsed |
 | Local Markdown links | 33 links across 28 files; no missing targets |
@@ -26,19 +26,20 @@ Observed on Linux with Python 3.12.14:
 | Supersession control | Engram Alpha v0.11.0 profile rejected before profile loading; no missing legacy file can become trial evidence |
 | JSON ambiguity control | Conflicting top-level and nested duplicate object names rejected with source bytes unchanged |
 | Schema ambiguity control | Unknown top-level, claim, and per-behavior fields rejected instead of remaining unchecked evidence |
-| Unexecuted-state control | `not_run` rejects run ID, host identity, client version, explicit trust, verified assets, observations and cleanup claims |
+| Unexecuted-state control | `not_run` rejects run ID, host identity, client name/version, explicit trust, verified assets, observations and cleanup claims |
 | Executed identity/time control | The pre-fix validator accepted a constructed qualified result without an observation time or distinct host ID; schema 4 requires both, and missing, malformed, offset and impossible timestamps fail closed |
+| Client identity control | Schema 5 accepted a constructed qualified `direct_mcp` result without an implementation name or version; schema 6 requires both for every executed result and keeps both null before execution |
 | Downloaded-byte identity control | The schema-4 validator accepted a constructed qualified result with only the expected profile digest and `asset_digest_verified=true`; schema 5 requires a lowercase observed SHA-256 equal to the pinned digest plus a non-secret verification-evidence reference |
 | Cleanup-state control | `cleanup.attempted=false` rejects claimed process, project-file, or machine-state cleanup outcomes |
-| Manual-approval control | Schema 5 rejects any enabled lifecycle hook, including permission-resolution hooks that could approve without user interaction |
+| Manual-approval control | Schema 6 rejects any enabled lifecycle hook, including permission-resolution hooks that could approve without user interaction |
 | Source-gate execution control | Basic Memory v1.0.0 remains valid only as an unchanged `not_run` binding; every executed decision is rejected while its exact profile records unconfined cross-project traversal |
 
 The controls cover exact profile/contract binding, expected/observed digest and authorization
 failures, forbidden global/automatic settings, missing/duplicate/reordered
 behaviours, incomplete evidence, cleanup and side-effect requirements, blocked
 decisions, contradictory unattempted-cleanup outcomes, run, observation-time,
-and executed-host identity, client-mode matching, live Bob
-version/trust/observation evidence for blocked and incomplete as well as
+and executed-host identity, exact client implementation/version, client-mode
+matching, live Bob trust/observation evidence for blocked and incomplete as well as
 qualified trials, non-interactive Bob rejection, production-readiness rejection,
 record preservation, and rejection of the superseded Engram profile. Hosted
 exact-head results belong in the pull request. The shared strict loader applies

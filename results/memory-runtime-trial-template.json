@@ -1,5 +1,5 @@
 {
-  "schema_version": 5,
+  "schema_version": 6,
   "protocol_id": "bob-project-memory-runtime-trial-v1",
   "run_id": null,
   "observed_at_utc": null,
@@ -21,6 +21,7 @@
     "operating_system": null,
     "architecture": null,
     "client": "not_run",
+    "client_name": null,
     "client_mode": "not_run",
     "client_version": null,
     "workspace_trust": "not_assessed",

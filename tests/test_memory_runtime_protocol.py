@@ -55,7 +55,9 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
             "operating_system": "constructed-os",
             "architecture": "constructed-arch",
             "client": client,
+            "client_name": "IBM Bob" if client == "ibm_bob" else "constructed MCP client",
             "client_mode": "direct_mcp" if client == "direct_mcp" else "ide_interactive",
+            "client_version": "constructed-client-version",
             "workspace_trust": "not_applicable_direct" if client == "direct_mcp" else "explicit_trust",
         })
         record["side_effects"] = {
@@ -108,6 +110,10 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
                 lambda record: record["environment"].update({"architecture": "claimed-arch"}),
             ),
             (
+                "client_name",
+                lambda record: record["environment"].update({"client_name": "unexecuted-client"}),
+            ),
+            (
                 "client_version",
                 lambda record: record["environment"].update({"client_version": "claimed-version"}),
             ),
@@ -140,8 +146,8 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
             "qualifications/engram-v3.7.2/profile.json",
             "qualifications/basic-memory-v1.0.0/profile.json",
         ])
-        self.assertEqual(protocol["schema_version"], 5)
-        self.assertEqual(self.record["schema_version"], 5)
+        self.assertEqual(protocol["schema_version"], 6)
+        self.assertEqual(self.record["schema_version"], 6)
         contract = json.loads((ROOT / protocol["contract_path"]).read_text(encoding="utf-8"))
         self.assertEqual([item["behavior"] for item in self.record["behaviors"]], contract["required_behaviors"])
 
@@ -289,6 +295,18 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("direct_mcp client requires direct_mcp client_mode", result.stderr)
 
+    def test_every_executed_record_requires_client_name_and_version(self) -> None:
+        for client in ("direct_mcp", "ibm_bob"):
+            for key in ("client_name", "client_version"):
+                with self.subTest(client=client, key=key):
+                    record = self.executed(client=client)
+                    record["environment"][key] = None
+                    if client == "ibm_bob":
+                        record["claims"]["live_bob_observed"] = True
+                    result = self.write_and_validate(record)
+                    self.assertEqual(result.returncode, 2)
+                    self.assertIn(f"environment.{key}", result.stderr)
+
     def test_global_settings_automatic_approval_or_hooks_are_rejected(self) -> None:
         for safeguard in (
             "global_settings_changed",
@@ -381,7 +399,7 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
         record["claims"]["live_bob_observed"] = True
         record["environment"]["client_version"] = "constructed-version"
         for section, key, value, message in (
-            ("environment", "client_version", None, "client version"),
+            ("environment", "client_version", None, "environment.client_version"),
             ("environment", "workspace_trust", "not_assessed", "explicit workspace trust"),
             ("claims", "live_bob_observed", False, "live_bob_observed true"),
         ):

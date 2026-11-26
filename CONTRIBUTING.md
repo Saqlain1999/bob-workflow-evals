@@ -65,11 +65,13 @@ not downloaded-byte evidence. The observed digest must match the reviewed
 profile digest. Keep both observation fields null before execution.
 Never turn a structurally valid `not_run`, `incomplete`, or `blocked` record into
 a qualification claim. A runtime record does not establish production
-readiness. Keep `not_run` free of run, observation-time, host, client-version,
+readiness. Keep `not_run` free of run, observation-time, host, client-name/version,
 trust, side-effect, cleanup, and behavior observations. Every executed record
 must name a distinct non-secret host identifier and a valid second-precision
-RFC 3339 UTC observation time. Every executed IBM Bob record, even when
-blocked or incomplete, must name an interactive client mode and version, record
+RFC 3339 UTC observation time. It must also name the observed client
+implementation and version; a generic `direct_mcp` category is not a
+reproducible client identity. Every executed IBM Bob record, even when blocked
+or incomplete, must name an interactive client mode, record
 explicit workspace trust, and set the live-observation marker. Non-interactive
 Bob Shell is outside this manual-approval protocol. Global, workspace, plugin,
 and policy lifecycle hooks must also be disabled; a hook-resolved permission is

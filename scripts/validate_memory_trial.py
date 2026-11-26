@@ -142,8 +142,8 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
 
     environment = require_object(record, "environment")
     require_exact_keys(environment, "environment", {
-        "host_id", "operating_system", "architecture", "client", "client_mode",
-        "client_version", "workspace_trust", "transport", "project_scope",
+        "host_id", "operating_system", "architecture", "client", "client_name",
+        "client_mode", "client_version", "workspace_trust", "transport", "project_scope",
     })
     client = environment.get("client")
     if client not in protocol["allowed_clients"]:
@@ -238,7 +238,7 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
             raise RecordError("not_run cannot claim a run_id")
         if record.get("observed_at_utc") is not None:
             raise RecordError("not_run cannot claim observed_at_utc")
-        for key in ("host_id", "operating_system", "architecture", "client_version"):
+        for key in ("host_id", "operating_system", "architecture", "client_name", "client_version"):
             if environment.get(key) is not None:
                 raise RecordError(f"not_run cannot claim environment.{key}")
         if environment.get("workspace_trust") != "not_assessed":
@@ -276,7 +276,7 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
             )
         if client == "not_run":
             raise RecordError("an executed decision requires an observed client")
-        for key in ("host_id", "operating_system", "architecture"):
+        for key in ("host_id", "operating_system", "architecture", "client_name", "client_version"):
             if not nonempty_text(environment.get(key)):
                 raise RecordError(f"an executed decision requires environment.{key}")
 
@@ -298,8 +298,6 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
                 "Bob Shell non-interactive mode pre-approves tools and is outside this manual-approval protocol"
             )
         if decision != "not_run":
-            if not nonempty_text(environment.get("client_version")):
-                raise RecordError("an executed IBM Bob observation requires a client version")
             if environment.get("workspace_trust") != "explicit_trust":
                 raise RecordError("an executed IBM Bob observation requires explicit workspace trust")
             if not claims["live_bob_observed"]:

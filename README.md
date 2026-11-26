@@ -193,7 +193,10 @@ current executable candidate; Basic Memory v1.0.0 may bind only as `not_run`
 until project confinement passes its source gate. The read-only validator checks
 the exact source/digest binding, all ten behaviours, safety boundaries, side
 effects (including MCP initialization instructions), cleanup, claim level, and
-the complete reviewed field set. Executed records separately retain the
+the complete reviewed field set. Every executed record names the observed
+client implementation and version as well as the run, host, and observation
+time; a client category alone is not an exact evidence identity. Executed
+records separately retain the
 artifact SHA-256 actually observed and a non-secret verification-evidence
 reference; setting a verification Boolean without those fields fails. The
 included template remains `not_run`; neither the protocol nor its tests execute
