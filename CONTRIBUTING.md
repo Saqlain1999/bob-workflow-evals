@@ -68,7 +68,8 @@ a qualification claim. A runtime record does not establish production
 readiness. Keep `not_run` free of run, observation-time, host, client-name/version,
 trust, side-effect, cleanup, and behavior observations. Every executed record
 must name a distinct non-secret host identifier and a valid second-precision
-RFC 3339 UTC observation time. It must also name the observed client
+RFC 3339 UTC observation time that does not predate the pinned artifact's
+recorded release event. It must also name the observed client
 implementation and version; a generic `direct_mcp` category is not a
 reproducible client identity. Every executed IBM Bob record, even when blocked
 or incomplete, must name an interactive client mode, record

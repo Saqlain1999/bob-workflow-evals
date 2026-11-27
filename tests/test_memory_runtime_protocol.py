@@ -146,8 +146,8 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
             "qualifications/engram-v3.7.2/profile.json",
             "qualifications/basic-memory-v1.0.0/profile.json",
         ])
-        self.assertEqual(protocol["schema_version"], 6)
-        self.assertEqual(self.record["schema_version"], 6)
+        self.assertEqual(protocol["schema_version"], 7)
+        self.assertEqual(self.record["schema_version"], 7)
         contract = json.loads((ROOT / protocol["contract_path"]).read_text(encoding="utf-8"))
         self.assertEqual([item["behavior"] for item in self.record["behaviors"]], contract["required_behaviors"])
 
@@ -294,6 +294,17 @@ class MemoryRuntimeProtocolTests(unittest.TestCase):
         result = self.write_and_validate(record)
         self.assertEqual(result.returncode, 2)
         self.assertIn("direct_mcp client requires direct_mcp client_mode", result.stderr)
+
+    def test_executed_observation_cannot_predate_pinned_artifact_release(self) -> None:
+        record = self.executed()
+        record["observed_at_utc"] = "2026-11-14T00:26:07Z"
+        result = self.write_and_validate(record)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("cannot predate", result.stderr)
+
+        record["observed_at_utc"] = "2026-11-14T00:26:08Z"
+        result = self.write_and_validate(record)
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_every_executed_record_requires_client_name_and_version(self) -> None:
         for client in ("direct_mcp", "ibm_bob"):

@@ -195,7 +195,8 @@ the exact source/digest binding, all ten behaviours, safety boundaries, side
 effects (including MCP initialization instructions), cleanup, claim level, and
 the complete reviewed field set. Every executed record names the observed
 client implementation and version as well as the run, host, and observation
-time; a client category alone is not an exact evidence identity. Executed
+time, and rejects an observation that predates the pinned artifact release; a
+client category alone is not an exact evidence identity. Executed
 records separately retain the
 artifact SHA-256 actually observed and a non-secret verification-evidence
 reference; setting a verification Boolean without those fields fails. The

@@ -38,8 +38,9 @@ rather than ignoring typoed or extra claims. A `not_run` record cannot carry
 run, observation-time, host, client-name/version, trust, side-effect, cleanup,
 or behavior observations. Every executed record must name a distinct
 non-secret host identifier, a valid second-precision RFC 3339 UTC observation
-time, and the observed client implementation and version. A generic client
-category is not a reproducible client identity. The
+time at or after the pinned artifact's recorded release, and the observed
+client implementation and version. A generic client category is not a
+reproducible client identity. The
 source section must also record the lowercase SHA-256 actually observed from
 the artifact and a non-secret evidence reference for that verification; the
 observed digest must equal the reviewed profile digest. A Boolean verification

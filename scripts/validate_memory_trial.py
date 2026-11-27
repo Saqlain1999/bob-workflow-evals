@@ -72,15 +72,14 @@ UTC_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 
-def valid_utc_timestamp(value: Any) -> bool:
-    """Accept an actual second-precision RFC 3339 UTC timestamp."""
+def parse_utc_timestamp(value: Any) -> datetime | None:
+    """Parse an actual second-precision RFC 3339 UTC timestamp."""
     if not isinstance(value, str) or UTC_TIMESTAMP.fullmatch(value) is None:
-        return False
+        return None
     try:
-        datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+        return datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
     except ValueError:
-        return False
-    return True
+        return None
 
 
 def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
@@ -269,10 +268,18 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
             raise RecordError("an executed decision requires an asset-digest evidence reference")
         if not nonempty_text(record.get("run_id")):
             raise RecordError("an executed decision requires a non-empty run_id")
-        if not valid_utc_timestamp(record.get("observed_at_utc")):
+        observed_at = parse_utc_timestamp(record.get("observed_at_utc"))
+        if observed_at is None:
             raise RecordError(
                 "an executed decision requires observed_at_utc as a valid "
                 "second-precision RFC 3339 UTC timestamp"
+            )
+        release_published_at = parse_utc_timestamp(profile_source.get("release_published_utc"))
+        if release_published_at is None:
+            raise RecordError("the pinned profile must record a valid release_published_utc")
+        if observed_at < release_published_at:
+            raise RecordError(
+                "an executed decision cannot predate the pinned artifact release_published_utc"
             )
         if client == "not_run":
             raise RecordError("an executed decision requires an observed client")

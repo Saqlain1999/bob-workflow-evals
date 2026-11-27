@@ -54,7 +54,9 @@ not as execution permission.
    distinct non-secret, pseudonymous host identifier and the actual observation
    time as a second-precision RFC 3339 UTC value such as
    `2026-11-24T08:00:00Z`; do not put a personal machine name or secret in the
-   host field.
+   host field. The observation time must be at or after the selected profile's
+   pinned artifact release time; evidence cannot describe bytes before that
+   artifact existed.
 
 Record process, file, network and model-download effects even when the observed
 answer is “none”; include how each observation was made. Record MCP server
@@ -92,6 +94,7 @@ applicable. Every executed record also names its operating system,
 architecture, a distinct host identifier, a valid UTC observation time, and
 the observed client implementation name and version. A generic `direct_mcp`
 category cannot stand in for the implementation identity.
+The observation time cannot predate the pinned profile's artifact release.
 Those fields bind evidence to an event and environment; the validator does not
 attest that their contents are truthful. It likewise requires an observed
 artifact SHA-256 equal to the pinned digest plus a verification-evidence
