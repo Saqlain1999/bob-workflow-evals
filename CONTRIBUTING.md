@@ -84,6 +84,11 @@ while its source gate blocks execution. The protocol must reject every executed
 decision for that profile until a reviewed confined artifact or wrapper clears
 the named gate; authorization and a matching digest cannot override a source
 block.
+Likewise, runtime assertions cannot turn source-known `adapter_required` or
+`blocked` contract mappings into a backend qualification. Keep execution
+available only for incomplete or blocked evidence where the profile permits it.
+A later adapter-based qualification needs a reviewed schema that pins the exact
+adapter identity and clears each named source gap.
 
 Explain the problem, the proposed change, and the observed checks. Avoid
 unnecessary package dependencies, model SDKs, credentials, and network calls.

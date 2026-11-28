@@ -176,6 +176,23 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
     if not isinstance(behaviors, list):
         raise RecordError("behaviors must be an array")
     expected_behaviors = contract["required_behaviors"]
+    profile_mapping = profile.get("contract_mapping")
+    if not isinstance(profile_mapping, list):
+        raise RecordError("backend profile contract_mapping must be an array")
+    profile_mapping_names = [
+        item.get("behavior") for item in profile_mapping if isinstance(item, dict)
+    ]
+    if (
+        len(profile_mapping_names) != len(profile_mapping)
+        or profile_mapping_names != expected_behaviors
+    ):
+        raise RecordError("backend profile contract_mapping must follow the contract behavior order")
+    blocking_mapping_statuses = set(protocol["qualification_blocking_mapping_statuses"])
+    unresolved_qualification_gates = [
+        (item["behavior"], item.get("status"))
+        for item in profile_mapping
+        if item.get("status") in blocking_mapping_statuses
+    ]
     names = [item.get("behavior") for item in behaviors if isinstance(item, dict)]
     if len(names) != len(behaviors) or names != expected_behaviors:
         raise RecordError("behaviors must appear exactly once in contract order")
@@ -322,6 +339,16 @@ def validate_record(record: dict[str, Any], root: Path = ROOT) -> str:
             raise RecordError("qualified requires complete observed cleanup")
         if not claims["backend_runtime_qualified"]:
             raise RecordError("qualified must set backend_runtime_qualified true")
+        if unresolved_qualification_gates:
+            details = ", ".join(
+                f"{behavior} ({status})"
+                for behavior, status in unresolved_qualification_gates
+            )
+            raise RecordError(
+                "backend profile has unresolved qualification gates: "
+                f"{details}; qualification requires a reviewed pinned adapter "
+                "or revised source profile"
+            )
     elif claims["backend_runtime_qualified"]:
         raise RecordError("only a qualified decision may claim backend runtime qualification")
 

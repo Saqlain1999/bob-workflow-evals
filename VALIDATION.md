@@ -1,6 +1,6 @@
 # Local software validation
 
-## Backend-neutral memory runtime evidence protocol — updated 27 November 2026 (UTC)
+## Backend-neutral memory runtime evidence protocol — updated 28 November 2026 (UTC)
 
 The protocol binds a later authorized project-memory trial to its exact
 reviewed profile and digest, the SHA-256 actually observed from a later artifact,
@@ -16,9 +16,9 @@ Observed on Linux with Python 3.12.14:
 
 | Check | Observed result |
 | --- | --- |
-| ResourceWarning-fatal combined suite | 87/87 passed |
-| Runtime-protocol focused suite | 22/22 passed |
-| Git-less exact-content archive | 87/87 passed |
+| ResourceWarning-fatal combined suite | 88/88 passed |
+| Runtime-protocol focused suite | 23/23 passed |
+| Git-less exact-content archive | 88/88 passed |
 | Python 3.10 grammar | 20 files parsed |
 | JSON syntax | 7 files parsed |
 | Local Markdown links | 33 links across 28 files; no missing targets |
@@ -30,9 +30,10 @@ Observed on Linux with Python 3.12.14:
 | Executed identity/time control | The pre-fix validator accepted a constructed qualified result without an observation time or distinct host ID; schema 4 requires both, and missing, malformed, offset and impossible timestamps fail closed |
 | Client identity control | Schema 5 accepted a constructed qualified `direct_mcp` result without an implementation name or version; schema 6 requires both for every executed result and keeps both null before execution |
 | Artifact chronology control | Schema 6 accepted a constructed qualified observation dated before the pinned artifact release; schema 7 rejects pre-release executed evidence and accepts the exact release boundary |
+| Source-gate qualification control | Schema 7 accepted a constructed qualified Engram result despite three `adapter_required` mappings and blocked revision-conflict refusal; schema 8 permits incomplete/blocked execution evidence but rejects qualification until a reviewed pinned adapter or revised profile clears every named gap |
 | Downloaded-byte identity control | The schema-4 validator accepted a constructed qualified result with only the expected profile digest and `asset_digest_verified=true`; schema 5 requires a lowercase observed SHA-256 equal to the pinned digest plus a non-secret verification-evidence reference |
 | Cleanup-state control | `cleanup.attempted=false` rejects claimed process, project-file, or machine-state cleanup outcomes |
-| Manual-approval control | Schema 7 rejects any enabled lifecycle hook, including permission-resolution hooks that could approve without user interaction |
+| Manual-approval control | Schema 8 rejects any enabled lifecycle hook, including permission-resolution hooks that could approve without user interaction |
 | Source-gate execution control | Basic Memory v1.0.0 remains valid only as an unchanged `not_run` binding; every executed decision is rejected while its exact profile records unconfined cross-project traversal |
 
 The controls cover exact profile/contract binding, expected/observed digest and authorization
@@ -58,6 +59,10 @@ recorded command, bytes, or evidence reference is truthful.
 The protocol also carries the profile's source block into runtime eligibility:
 execution authorization and a verified digest cannot make Basic Memory v1.0.0
 executable while its project-separation gate remains `blocked_by_source`.
+It also carries source-known adapter and blocked contract mappings into the
+qualification decision: Engram can collect incomplete or blocked runtime
+evidence, but cannot qualify without a reviewed schema that pins an adapter or a
+revised source profile that clears those gaps.
 
 This is protocol-validation evidence. It is not a third-party download,
 installation, runtime trial, live Bob observation, backend qualification,

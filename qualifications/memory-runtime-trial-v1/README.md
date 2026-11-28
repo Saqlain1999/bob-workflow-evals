@@ -84,9 +84,14 @@ runtime record; extending the evidence shape requires an explicit schema change
 rather than an unchecked extra claim.
 
 `qualified` is intentionally narrow. It requires all ten behaviours to pass,
-successful cleanup, and complete side-effect evidence. It never means production
-ready. Every executed IBM Bob record—including a blocked or incomplete
-trial—requires an observed interactive client mode and version, explicit
+successful cleanup, complete side-effect evidence, and a pinned source profile
+with no `adapter_required` or `blocked` contract mapping. Engram v3.7.2 remains
+executable for incomplete or blocked observations, but its current source-known
+gaps prevent qualification. A later adapter-based qualification requires an
+explicitly reviewed schema that pins that adapter's identity; runtime assertions
+cannot silently stand in for missing source or adapter evidence. `qualified`
+never means production ready. Every executed IBM Bob record—including a blocked
+or incomplete trial—requires an observed interactive client mode and version, explicit
 workspace trust, and `live_bob_observed=true`. This records where the evidence
 came from; it does not turn a blocked or incomplete result into backend
 qualification. Direct MCP records must instead mark workspace trust as not

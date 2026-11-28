@@ -50,3 +50,8 @@ lifecycle hooks to be disabled so a permission hook cannot substitute for a
 manual approval. Cleanup outcomes are
 valid only when `cleanup.attempted=true`; an unattempted cleanup cannot claim
 that processes stopped, files were removed, or machine state was cleaned.
+Engram execution can currently produce only incomplete or blocked evidence:
+its pinned profile still marks three behaviors `adapter_required` and revision
+conflict refusal `blocked`. A structurally complete runtime assertion cannot
+override those source findings. A later `qualified` adapter result requires a
+reviewed schema that pins the adapter identity and clears each named gap.

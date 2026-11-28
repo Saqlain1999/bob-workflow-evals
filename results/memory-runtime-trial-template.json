@@ -1,5 +1,5 @@
 {
-  "schema_version": 7,
+  "schema_version": 8,
   "protocol_id": "bob-project-memory-runtime-trial-v1",
   "run_id": null,
   "observed_at_utc": null,
