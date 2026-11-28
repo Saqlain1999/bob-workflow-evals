@@ -1,0 +1,77 @@
+{
+  "schema_version": 8,
+  "protocol_id": "bob-project-memory-runtime-trial-v1",
+  "run_id": null,
+  "observed_at_utc": null,
+  "backend_profile": "qualifications/engram-v3.7.2/profile.json",
+  "backend_qualification_id": "engram-v3.7.2-source-gate",
+  "source": {
+    "commit": "c6ba9e3c0e98ffa0d5591481d8670a575e7b70b0",
+    "asset_sha256": "8db9d5db1c1574b8b830aac4ffbe86c024014aed6b9a3f0406ac3361a152cdf0",
+    "observed_asset_sha256": null,
+    "asset_digest_evidence": null,
+    "asset_digest_verified": false
+  },
+  "authorization": {
+    "third_party_execution_authorized": false,
+    "authorization_reference": null
+  },
+  "environment": {
+    "host_id": null,
+    "operating_system": null,
+    "architecture": null,
+    "client": "not_run",
+    "client_name": null,
+    "client_mode": "not_run",
+    "client_version": null,
+    "workspace_trust": "not_assessed",
+    "transport": "stdio",
+    "project_scope": "disposable_project_only"
+  },
+  "safeguards": {
+    "constructed_public_data_only": true,
+    "credentials_used": false,
+    "paid_services_used": false,
+    "global_settings_changed": false,
+    "cloud_sync_enabled": false,
+    "transcript_capture_enabled": false,
+    "automatic_tool_approval": false,
+    "lifecycle_hooks_enabled": false
+  },
+  "side_effects": {
+    "processes": [],
+    "files": [],
+    "network": [],
+    "model_downloads": [],
+    "mcp_initialization_instructions": []
+  },
+  "behaviors": [
+    {"behavior": "fresh-session recall", "status": "not_run", "evidence": null},
+    {"behavior": "project separation", "status": "not_run", "evidence": null},
+    {"behavior": "explicit sanitized promotion", "status": "not_run", "evidence": null},
+    {"behavior": "supersession with history", "status": "not_run", "evidence": null},
+    {"behavior": "source freshness", "status": "not_run", "evidence": null},
+    {"behavior": "revision conflict refusal", "status": "not_run", "evidence": null},
+    {"behavior": "interrupted-write recovery", "status": "not_run", "evidence": null},
+    {"behavior": "hostile content remains untrusted data", "status": "not_run", "evidence": null},
+    {"behavior": "direct and indexed deletion", "status": "not_run", "evidence": null},
+    {"behavior": "honest backend-outage degradation", "status": "not_run", "evidence": null}
+  ],
+  "cleanup": {
+    "attempted": false,
+    "processes_stopped": false,
+    "project_files_removed": false,
+    "machine_state_removed_or_absent": false,
+    "notes": null
+  },
+  "decision": "not_run",
+  "decision_rationale": "No third-party runtime was authorized or executed.",
+  "claims": {
+    "backend_runtime_qualified": false,
+    "live_bob_observed": false,
+    "production_ready": false
+  },
+  "limitations": [
+    "No backend or Bob client was executed."
+  ]
+}

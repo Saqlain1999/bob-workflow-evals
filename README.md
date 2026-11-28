@@ -186,6 +186,26 @@ explicit graph relations across projects and hydrates target metadata, so the
 gate now defers execution until a stable confined release or reviewed
 project-confined wrapper passes the named A-to-B disclosure fixture.
 
+The backend-neutral
+[runtime trial protocol](qualifications/memory-runtime-trial-v1/README.md)
+defines one evidence shape for project-memory trials. Engram v3.7.2 is the
+current executable candidate for incomplete or blocked observations; its
+source-known adapter requirements and blocked revision-conflict behavior prevent
+a `qualified` decision until a reviewed, pinned adapter or revised profile clears
+those gates. Basic Memory v1.0.0 may bind only as `not_run`
+until project confinement passes its source gate. The read-only validator checks
+the exact source/digest binding, all ten behaviours, safety boundaries, side
+effects (including MCP initialization instructions), cleanup, claim level, and
+the complete reviewed field set. Every executed record names the observed
+client implementation and version as well as the run, host, and observation
+time, and rejects an observation that predates the pinned artifact release; a
+client category alone is not an exact evidence identity. Executed
+records separately retain the
+artifact SHA-256 actually observed and a non-secret verification-evidence
+reference; setting a verification Boolean without those fields fails. The
+included template remains `not_run`; neither the protocol nor its tests execute
+third-party software or grant permission to do so.
+
 ## What the helper reports
 
 `--result` writes a JSON report and refuses to overwrite an existing report.

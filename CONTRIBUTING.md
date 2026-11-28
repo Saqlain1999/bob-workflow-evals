@@ -54,6 +54,42 @@ must not reveal another project's title, path, external ID, or graph links.
 Treat source-supported cross-project traversal as a block until the exact
 artifact or reviewed wrapper provides a fail-closed confinement control.
 
+Runtime trial records must use the shared memory protocol, bind to one allowed
+profile and exact digest, retain constructed public data and manual approvals,
+and record process, file, network, model-download, MCP initialization-instruction
+and cleanup observations. Keep the schema exact: missing, misspelled, and
+unrecognized fields must fail rather than becoming unchecked evidence.
+For an executed result, record the SHA-256 actually observed from the artifact
+and a non-secret verification-evidence reference; a Boolean assertion alone is
+not downloaded-byte evidence. The observed digest must match the reviewed
+profile digest. Keep both observation fields null before execution.
+Never turn a structurally valid `not_run`, `incomplete`, or `blocked` record into
+a qualification claim. A runtime record does not establish production
+readiness. Keep `not_run` free of run, observation-time, host, client-name/version,
+trust, side-effect, cleanup, and behavior observations. Every executed record
+must name a distinct non-secret host identifier and a valid second-precision
+RFC 3339 UTC observation time that does not predate the pinned artifact's
+recorded release event. It must also name the observed client
+implementation and version; a generic `direct_mcp` category is not a
+reproducible client identity. Every executed IBM Bob record, even when blocked
+or incomplete, must name an interactive client mode, record
+explicit workspace trust, and set the live-observation marker. Non-interactive
+Bob Shell is outside this manual-approval protocol. Global, workspace, plugin,
+and policy lifecycle hooks must also be disabled; a hook-resolved permission is
+not manual approval. Cleanup outcome flags are observations: keep them false
+when cleanup was not attempted, or set `attempted=true` and record notes for the
+actual cleanup attempt.
+An allowed profile may remain available for a reproducible `not_run` binding
+while its source gate blocks execution. The protocol must reject every executed
+decision for that profile until a reviewed confined artifact or wrapper clears
+the named gate; authorization and a matching digest cannot override a source
+block.
+Likewise, runtime assertions cannot turn source-known `adapter_required` or
+`blocked` contract mappings into a backend qualification. Keep execution
+available only for incomplete or blocked evidence where the profile permits it.
+A later adapter-based qualification needs a reviewed schema that pins the exact
+adapter identity and clears each named source gap.
+
 Explain the problem, the proposed change, and the observed checks. Avoid
 unnecessary package dependencies, model SDKs, credentials, and network calls.
 
